@@ -14,15 +14,15 @@ export function ContactInfo() {
     {
       icon: Github,
       label: 'GitHub',
-      value: 'github.com/gervin',
-      href: 'https://github.com',
+      value: 'github.com/gervinlee',
+      href: 'https://github.com/gervinlee',
       external: true,
     },
     {
       icon: Linkedin,
       label: 'LinkedIn',
-      value: 'linkedin.com/in/gervin',
-      href: 'https://linkedin.com',
+      value: 'linkedin.com/in/gervin-lee-enero',
+      href: 'https://linkedin.com/in/gervin-lee-enero',
       external: true,
     },
   ];

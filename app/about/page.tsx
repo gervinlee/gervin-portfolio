@@ -100,7 +100,7 @@ const educationData = [
     shortSchool: 'OLFU',
     focus: 'Science & Technology',
     description: 'Completed STEM strand with honors, building a strong foundation in mathematics, physics, and computer science. Joined programming competitions and technology workshops.',
-    achievements: ['Academic Honors', 'STEM Excellence', 'Programming Competitions'],
+    achievements: ['Academic Honors', 'STEM Excellence', 'Research & Innovation'],
     image: '/assets/olfu.jpg',
     accent: '#fb923c',
     index: 2,
@@ -112,7 +112,7 @@ const educationData = [
     shortSchool: 'CNHS',
     focus: 'General Education',
     description: 'Maintained consistent academic excellence while developing early interest in technology. Participated in school tech clubs and computer literacy programs.',
-    achievements: ['Consistent Honor Student', 'Tech Club Member', 'Computer Literacy'],
+    achievements: ['Honor Student', 'Digital Skills Enthusiast', 'Computer Literacy'],
     image: '/assets/cnhs.jpg',
     accent: '#f59e0b',
     index: 3,
@@ -124,7 +124,7 @@ const educationData = [
     shortSchool: 'SJAV',
     focus: 'Foundation Education',
     description: 'Discovered passion for technology during elementary years. First exposure to computers sparked a lifelong interest in digital innovation and problem-solving.',
-    achievements: ['Honor Student', 'First Computer Experience', 'Tech Enthusiast'],
+    achievements: ['Consistent Honor Student', 'First Computer Experience', 'Tech Enthusiast'],
     image: '/assets/sjav.jpg',
     accent: '#ea580c',
     index: 4,
@@ -297,6 +297,24 @@ export default function About() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  // ── Scroll reveal ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.10, rootMargin: '0px 0px -60px 0px' }
+    );
+    targets.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <main className="min-h-screen pt-16 bg-background relative overflow-x-hidden">
       {/* Ambient background */}
@@ -308,12 +326,12 @@ export default function About() {
 
       {/* HERO SECTION */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-center mb-16 tracking-tight gradient-text leading-none">Who I Am</h1>
+        <h1 data-reveal="fade" className="text-5xl sm:text-6xl lg:text-7xl font-black text-center mb-16 tracking-tight gradient-text leading-none">Who I Am</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16 items-start">
           
           {/* Profile Card */}
-          <div className="lg:col-span-2 flex justify-center">
+          <div data-reveal="slide-left" className="lg:col-span-2 flex justify-center">
             <div
               className="relative group w-full max-w-sm"
               style={{ '--mouse-x': `${mousePosition.x}%`, '--mouse-y': `${mousePosition.y}%` } as React.CSSProperties}
@@ -374,13 +392,13 @@ export default function About() {
           </div>
 
           {/* Right info cards */}
-          <div className="lg:col-span-3 space-y-8">
+          <div data-reveal="slide-right" className="lg:col-span-3 space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
-                { icon: <User className="w-6 h-6 text-orange-500" />, title: 'Who I Am', text: "I'm Gervin Lee, a passionate BSIT student from Valenzuela City, Philippines. Turning ideas into functional and beautiful web applications." },
-                { icon: <Code2 className="w-6 h-6 text-orange-500" />, title: 'What I Build', text: 'Modern full-stack web applications using React, Next.js, Node.js and beautiful UI/UX design.' },
-                { icon: <Target className="w-6 h-6 text-orange-500" />, title: 'My Vision', text: 'Creating technology that solves real-world problems and delivers exceptional user experiences.' },
-                { icon: <Coffee className="w-6 h-6 text-orange-500" />, title: 'Beyond Coding', text: 'When not coding, I enjoy learning new tech, playing strategy games, and exploring UI/UX trends. Always curious.' },
+                { icon: <User className="w-6 h-6 text-orange-500" />, title: 'Who I Am', text: "I'm Gervin Lee, a BSIT student and aspiring Frontend Developer who enjoys building modern and interactive web experiences." },
+                { icon: <Code2 className="w-6 h-6 text-orange-500" />, title: 'What I Build', text: 'From responsive websites to creative UI concepts, I focus on developing projects that combine functionality with good design.' },
+                { icon: <Target className="w-6 h-6 text-orange-500" />, title: 'My Vision', text: 'To become a skilled developer who creates meaningful digital experiences and continuously learns new technologies.' },
+                { icon: <Coffee className="w-6 h-6 text-orange-500" />, title: 'Beyond Coding', text: 'I enjoy exploring UI/UX design, experimenting with new tools, and staying updated with the latest trends in web development.' },
               ].map(({ icon, title, text }) => (
                 <div key={title} className="group bg-card border border-border/60 rounded-3xl p-6 hover:border-orange-500/30 transition-all duration-300 hover:-translate-y-1">
                   <div className="w-11 h-11 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
@@ -397,12 +415,12 @@ export default function About() {
 
       {/* TECH STACK & TOOLS */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
+        <div data-reveal="fade" className="text-center mb-14">
           <h2 className="text-4xl sm:text-5xl font-black tracking-tight gradient-text">Tech Stack &amp; Tools</h2>
-          <p className="text-foreground/60 mt-3">Technologies from my digital orbit</p>
+          <p className="text-foreground/60 mt-3">The technologies powering my ideas and creations</p>
         </div>
 
-        <div className="relative overflow-hidden py-8">
+        <div data-reveal="scale" className="relative overflow-hidden py-8">
           {/* Edge fade masks */}
           <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
@@ -431,12 +449,12 @@ export default function About() {
 
       {/* CERTIFICATIONS SECTION */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-10">
+        <div data-reveal="fade" className="text-center mb-10">
           <h2 className="text-4xl sm:text-5xl font-black tracking-tight gradient-text">Certifications</h2>
           <p className="text-foreground/60 mt-3">Cisco Professional Credentials • Verified on Credly</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div data-reveal data-reveal-stagger className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {[
             {
               title: "Networking Basics",
@@ -517,12 +535,12 @@ export default function About() {
 
       {/* ACADEMIC JOURNEY SECTION */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+        <div data-reveal="fade" className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl font-black tracking-tight gradient-text">Academic Journey</h2>
           <p className="text-foreground/60 mt-3 max-w-md mx-auto">Flip through the pages of my educational story</p>
         </div>
 
-        <div className="flex justify-center">
+        <div data-reveal="scale" className="flex justify-center">
           <div className="relative w-full max-w-[1100px] min-h-[720px]">
             {/* Mobile View */}
             <div className="lg:hidden space-y-6">
@@ -642,7 +660,7 @@ export default function About() {
       </section>
 
       {/* ── FOOTER ───────────────────────────────────────────────────────── */}
-      <footer className="py-8 px-4 border-t border-border/50">
+      <footer data-reveal="fade" className="py-8 px-4 border-t border-border/50">
         <div className="max-w-7xl mx-auto text-center text-sm text-foreground/40">
           <p>&copy; 2026 Gervin Lee Enero. All rights reserved.</p>
         </div>
@@ -651,6 +669,39 @@ export default function About() {
       <style jsx>{`
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Scroll Reveal ─────────────────────────────────────────────── */
+        [data-reveal] {
+          opacity: 0;
+          transform: translateY(52px);
+          transition:
+            opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: opacity, transform;
+        }
+        [data-reveal="slide-left"]  { transform: translateX(-52px); }
+        [data-reveal="slide-right"] { transform: translateX(52px); }
+        [data-reveal="scale"]       { transform: translateY(32px) scale(0.96); }
+        [data-reveal="fade"]        { transform: none; }
+
+        [data-reveal].reveal-visible {
+          opacity: 1;
+          transform: translateY(0) translateX(0) scale(1);
+        }
+
+        /* Stagger grid children */
+        [data-reveal-stagger].reveal-visible > * {
+          animation: _staggerFadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        [data-reveal-stagger].reveal-visible > *:nth-child(1) { animation-delay: 0.05s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(2) { animation-delay: 0.15s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(3) { animation-delay: 0.25s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(4) { animation-delay: 0.35s; }
+
+        @keyframes _staggerFadeUp {
+          from { opacity: 0; transform: translateY(28px); }
           to   { opacity: 1; transform: translateY(0); }
         }
 

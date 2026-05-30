@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
 import Navigation from '@/components/navigation'
 import SplashScreen from '@/components/splash-screen'
+import CursorSystem from '@/components/cursor-system';
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -16,8 +17,8 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/gervin-picture.jpg',
-        href: '/gervin-picture.jpg',
+        url: '/assets/favicon.png',
+        href: '/assets/favicon.png',
       }
     ],
   },
@@ -32,6 +33,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <CursorSystem />
           <SplashScreen />
           <Navigation />
           {children}

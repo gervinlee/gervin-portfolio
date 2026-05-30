@@ -91,9 +91,9 @@ export default function Navigation() {
             href="/"
             className="flex items-center gap-2 group"
           >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center overflow-hidden group-hover:shadow-lg transition-all duration-300">
+            <div className="w-10 h-10 flex items-center justify-center overflow-hidden group-hover:shadow-lg transition-all duration-300">
               <img
-                src="/gervin-picture.jpg"
+                src="/assets/favicon.png"
                 alt="GLE"
                 className="w-full h-full object-cover"
               />
@@ -122,9 +122,9 @@ export default function Navigation() {
 
             {/* View CV Button */}
             <a
-              href="/cv.txt"
+              href="/assets/cv.pdf"
               className="inline-flex items-center gap-2 ml-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90 transition-all duration-300"
-              download="Gervin_Lee_Enero_CV.txt"
+              download="cv.pdf"
             >
               <Download className="w-4 h-4" />
 
@@ -223,9 +223,9 @@ export default function Navigation() {
 
           {/* View CV Button for Mobile */}
           <a
-            href="/cv.txt"
+            href="/assets/cv.pdf"
             className="flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90 transition-all duration-300"
-            download="Gervin_Lee_Enero_CV.txt"
+            download="cv.pdf"
           >
             <Download className="w-4 h-4" />
 

@@ -202,9 +202,9 @@ const projects: Project[] = [
   {
     title: 'Inventory Management System',
     category: 'Web Development',
-    description: 'A comprehensive inventory system designed to streamline stock tracking, orders, and deliveries with real-time updates.',
+    description: 'An inventory management system developed for tracking products, monitoring stock levels, managing branches and flavors, and keeping records of expiration dates to improve inventory control and business operations.',
     tech: ['HTML', 'CSS', 'JavaScript', 'Java'],
-    features: ['Responsive design', 'Dark mode', 'Smooth animations', 'SEO optimized'],
+    features: ['Product inventory management', 'Branch and flavor tracking', 'Stock level monitoring','Expiration date management'],
     image: '/assets/elegantea-cover.png',
     images: ['/assets/elegantea-login.png', '/assets/elegantea-main.png'],
     link: null,
@@ -215,9 +215,9 @@ const projects: Project[] = [
   {
     title: 'SatisTrack',
     category: 'Full Stack',
-    description: 'Analytics platform for tracking and analyzing satisfaction metrics — real-time dashboards, trend analysis, and automated reporting tools.',
-    tech: ['React', 'Express', 'MongoDB', 'JWT Auth'],
-    features: ['User authentication', 'Volunteer tracking', 'Activity scheduling', 'Reporting system'],
+    description: 'A customer satisfaction survey platform designed to collect, analyze, and visualize feedback through interactive dashboards, satisfaction metrics, trend monitoring, and automated reporting.',
+    tech: ['React', 'TypeScript', 'Tailwind CSS', 'Supabase'],
+    features: ['Customer feedback collection', 'Real-time analytics dashboard', 'Satisfaction trend analysis', 'Automated survey reporting'],
     image: '/assets/satistrack-landing.png',
     images: ['/assets/satistrack-landing.png', '/assets/satistrack-login.png'],
     link: 'https://satis-track.vercel.app/',
@@ -230,7 +230,7 @@ const projects: Project[] = [
     title: 'EA Printworks',
     category: 'Web Development',
     description: 'A full-featured printworks web platform covering orders, gallery, services, and contact — built for real client use.',
-    tech: ['React', 'Node.js', 'PostgreSQL', 'Tailwind CSS'],
+    tech: ['HTML & CSS', 'JavaScript', 'PHP', 'SQL'],
     features: ['Real-time inventory tracking', 'Order management', 'Delivery coordination', 'Analytics dashboard'],
     image: '/assets/ea-printworks-landing.png',
     images: ['/assets/ea-printworks-home.png', '/assets/ea-printworks-about.png', '/assets/ea-printworks-services.png', '/assets/ea-printworks-gallery.png', '/assets/ea-printworks-contact.png', '/assets/ea-printworks-order.png'],
@@ -264,7 +264,7 @@ const academicWorks = [
     description: 'A comprehensive rulebook for the Barikada game.', 
     details: 'Game Rule Book | 2025', 
     image: '/assets/rulebook-cover.png',
-    pdf: '/assets/rule-book.pdf' 
+    pdf: '/assets/rulebook.pdf' 
   },
 ];
 
@@ -352,6 +352,24 @@ export default function ProjectsAndWorks() {
 
   const imageClasses = `absolute inset-0 bg-cover bg-center transition-transform duration-[700ms] ease-out ${phase === 'idle' ? 'scale-100' : 'scale-[1.08]'}`;
 
+  // ── Scroll reveal ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.10, rootMargin: '0px 0px -60px 0px' }
+    );
+    targets.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <main className="min-h-screen pt-16 bg-background relative overflow-x-hidden">
       <ThreeBackground />
@@ -364,13 +382,14 @@ export default function ProjectsAndWorks() {
 
       {/* Featured Projects */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-center mb-6 tracking-tight gradient-text">Featured Projects</h1>
-        <p className="text-center text-foreground/60 text-lg max-w-2xl mx-auto">Turning ideas into functional and beautiful digital experiences</p>
+        <h1 data-reveal="fade" className="text-5xl sm:text-6xl lg:text-7xl font-black text-center mb-6 tracking-tight gradient-text">Featured Projects</h1>
+        <p data-reveal="fade" className="text-center text-foreground/60 text-lg max-w-2xl mx-auto">Turning ideas into functional and beautiful digital experiences</p>
       </section>
 
       {/* Compact Project Carousel */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-16">
         <div
+          data-reveal="scale"
           className="rounded-3xl overflow-hidden border border-border/60 shadow-2xl bg-card/95 backdrop-blur-2xl"
           onPointerDown={(e) => { startXRef.current = e.clientX; }}
           onPointerUp={(e) => {
@@ -447,7 +466,7 @@ export default function ProjectsAndWorks() {
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-between mt-6 px-2">
+        <div data-reveal="fade" className="flex items-center justify-between mt-6 px-2">
           <div className="flex gap-3">
             {projects.map((_, i) => (
               <button key={i} onClick={() => goToProject(i)} className={`h-2 rounded-full transition-all ${i === currentProject ? 'w-12 bg-orange-500' : 'w-6 bg-border hover:bg-orange-500/50'}`} />
@@ -463,12 +482,12 @@ export default function ProjectsAndWorks() {
 
       {/* More Works Section */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-20">
-        <div className="text-center mb-12">
+        <div data-reveal="fade" className="text-center mb-12">
           <h2 className="text-4xl font-black tracking-tight gradient-text">More Works</h2>
-          <p className="text-foreground/60 mt-2">Academic • Multimedia • Personal</p>
+          <p className="text-foreground/60 mt-2">Academic • Multimedia • Personal Works</p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
+        <div data-reveal className="flex flex-wrap justify-center gap-3 mb-12">
           {[
             { value: 'all', label: 'All Works' },
             { value: 'academic', label: 'Academic' },
@@ -485,7 +504,7 @@ export default function ProjectsAndWorks() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div data-reveal data-reveal-stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWorks.map((work: any, idx) => {
             const isPdf = 'pdf' in work && !!work.pdf;
             return (
@@ -522,7 +541,7 @@ export default function ProjectsAndWorks() {
 
       {/* CTA */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="rounded-3xl border border-border/60 bg-card/80 p-12 text-center relative overflow-hidden group">
+        <div data-reveal="scale" className="rounded-3xl border border-border/60 bg-card/80 p-12 text-center relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
           <h2 className="text-4xl font-black tracking-tight mb-4">Interested in collaborating?</h2>
           <p className="text-lg text-foreground/70 max-w-2xl mx-auto mb-10">I'm always open to new opportunities and exciting projects. Let's create something amazing together.</p>
@@ -533,7 +552,7 @@ export default function ProjectsAndWorks() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-4 border-t border-border/50">
+      <footer data-reveal="fade" className="py-8 px-4 border-t border-border/50">
         <div className="max-w-7xl mx-auto text-center text-sm text-foreground/40">
           <p>&copy; 2026 Gervin Lee Enero. All rights reserved.</p>
         </div>
@@ -549,6 +568,46 @@ export default function ProjectsAndWorks() {
           setModalPdf(null);
         }} 
       />
+      <style jsx>{`
+        /* ── Scroll Reveal ───────────────────────────────────────────────── */
+        [data-reveal] {
+          opacity: 0;
+          transform: translateY(52px);
+          transition:
+            opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: opacity, transform;
+        }
+        [data-reveal="slide-left"]  { transform: translateX(-52px); }
+        [data-reveal="slide-right"] { transform: translateX(52px); }
+        [data-reveal="scale"]       { transform: translateY(32px) scale(0.96); }
+        [data-reveal="fade"]        { transform: none; }
+
+        [data-reveal].reveal-visible {
+          opacity: 1;
+          transform: translateY(0) translateX(0) scale(1);
+        }
+
+        /* Stagger grid children */
+        [data-reveal-stagger].reveal-visible > * {
+          animation: _staggerFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        [data-reveal-stagger].reveal-visible > *:nth-child(1) { animation-delay: 0.04s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(2) { animation-delay: 0.11s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(3) { animation-delay: 0.18s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(4) { animation-delay: 0.25s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(5) { animation-delay: 0.32s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(6) { animation-delay: 0.39s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(7) { animation-delay: 0.46s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(8) { animation-delay: 0.53s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(9) { animation-delay: 0.60s; }
+
+        @keyframes _staggerFadeUp {
+          from { opacity: 0; transform: translateY(28px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
     </main>
   );
 }

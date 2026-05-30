@@ -12,6 +12,7 @@ import {
 import {
   useRef,
   useState,
+  useEffect,
 } from 'react';
 import { ContactSection } from '@/components/contact-section';
 import { TechStack } from '@/components/tech-stack';
@@ -73,7 +74,7 @@ function ProfileCard() {
           `,
         }}
       >
-        {/* Rotating rings - ORIGINAL SIZES */}
+        {/* Rotating rings */}
         <div className="ring ring-1" />
         <div className="ring ring-2" />
         <div className="ring ring-3" />
@@ -105,10 +106,117 @@ function ProfileCard() {
 }
 
 export default function Home() {
+  useEffect(() => {
+    // All scroll-reveal targets — sections + named wrappers
+    const targets = document.querySelectorAll<HTMLElement>(
+      'section[data-reveal], [data-reveal]'
+    );
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement;
+            el.classList.add('reveal-visible');
+            // Once revealed, stop observing
+            observer.unobserve(el);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -60px 0px' }
+    );
+
+    targets.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <>
       {/* Scoped styles */}
       <style>{`
+        /* ─── Scroll Reveal Base ─────────────────────────── */
+        [data-reveal] {
+          opacity: 0;
+          transform: translateY(52px);
+          transition:
+            opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: opacity, transform;
+        }
+
+        [data-reveal="slide-left"] {
+          transform: translateX(-52px);
+        }
+
+        [data-reveal="slide-right"] {
+          transform: translateX(52px);
+        }
+
+        [data-reveal="scale"] {
+          transform: translateY(32px) scale(0.96);
+        }
+
+        [data-reveal="fade"] {
+          transform: none;
+        }
+
+        [data-reveal].reveal-visible {
+          opacity: 1;
+          transform: translateY(0) translateX(0) scale(1);
+        }
+
+        /* Stagger children when parent is revealed */
+        [data-reveal-stagger].reveal-visible > * {
+          animation: staggerFadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        [data-reveal-stagger].reveal-visible > *:nth-child(1) { animation-delay: 0.05s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(2) { animation-delay: 0.12s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(3) { animation-delay: 0.19s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(4) { animation-delay: 0.26s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(5) { animation-delay: 0.33s; }
+        [data-reveal-stagger].reveal-visible > *:nth-child(6) { animation-delay: 0.40s; }
+
+        @keyframes staggerFadeUp {
+          from { opacity: 0; transform: translateY(28px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero is always visible (above the fold) */
+        section.hero-section {
+          opacity: 1;
+          transform: none;
+        }
+
+        /* ─── Hero entrance animations ───────────────────── */
+        .hero-left > * {
+          opacity: 0;
+          animation: heroSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .hero-left > *:nth-child(1) { animation-delay: 0.15s; }
+        .hero-left > *:nth-child(2) { animation-delay: 0.28s; }
+        .hero-left > *:nth-child(3) { animation-delay: 0.40s; }
+        .hero-left > *:nth-child(4) { animation-delay: 0.52s; }
+        .hero-left > *:nth-child(5) { animation-delay: 0.62s; }
+
+        .hero-right {
+          opacity: 0;
+          animation: heroFadeScale 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+        }
+
+        @keyframes heroSlideUp {
+          from { opacity: 0; transform: translateY(36px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes heroFadeScale {
+          from { opacity: 0; transform: scale(0.92); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+
+        /* ─── Profile Card ──────────────────────────────── */
         .ai-core-wrapper {
           position: relative;
           width: 100%;
@@ -316,8 +424,9 @@ export default function Home() {
           <div className="absolute inset-0 dots-bg opacity-30" />
         </div>
 
-        {/* HERO SECTION */}
-        <section className="relative overflow-hidden h-[100dvh] flex items-center">
+        {/* ── HERO SECTION ─────────────────────────────────── */}
+        {/* Hero is always in-view; children animate on mount */}
+        <section className="hero-section relative overflow-hidden h-[100dvh] flex items-center">
           {/* Hero BG image */}
           <div
             className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat transition-all duration-500 dark:brightness-[0.45] brightness-[0.95]"
@@ -333,8 +442,9 @@ export default function Home() {
           <div className="relative z-20 w-full h-full flex items-center">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center h-full">
-                {/* LEFT CONTENT */}
-                <div className="flex flex-col justify-center order-2 lg:order-1 text-center lg:text-left py-6 lg:py-0">
+
+                {/* LEFT CONTENT — staggered entrance */}
+                <div className="hero-left flex flex-col justify-center order-2 lg:order-1 text-center lg:text-left py-6 lg:py-0">
                   <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-[0.95] tracking-tight mb-4 sm:mb-6">
                     <span className="gradient-text">Gervin Lee</span>
                     <br />
@@ -386,8 +496,8 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* RIGHT CONTENT */}
-                <div className="flex items-center justify-center order-1 lg:order-2">
+                {/* RIGHT CONTENT — fade scale entrance */}
+                <div className="hero-right flex items-center justify-center order-1 lg:order-2">
                   <ProfileCard />
                 </div>
               </div>
@@ -395,21 +505,31 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── TECH STACK SECTION ── */}
-        <TechStack />
-
-        {/* ── FEATURED PROJECTS SECTION ── */}
-        <FeaturedProjects />
-
-        {/* ── CONTACT SECTION ── */}
-        <ContactSection />
-
-        {/* ── FOOTER ── */}
-        <footer className="py-8 px-4 border-t border-border/50">
-        <div className="max-w-7xl mx-auto text-center text-sm text-foreground/40">
-          <p>&copy; 2026 Gervin Lee Enero. All rights reserved.</p>
+        {/* ── TECH STACK SECTION ───────────────────────────── */}
+        {/*
+          Wrap in a reveal div so the whole section slides up when scrolled into view.
+          The component itself can also add inner data-reveal attrs for finer staggering.
+        */}
+        <div data-reveal className="tech-stack-section">
+          <TechStack />
         </div>
-      </footer>
+
+        {/* ── FEATURED PROJECTS SECTION ────────────────────── */}
+        <div data-reveal="scale" className="featured-projects-section">
+          <FeaturedProjects />
+        </div>
+
+        {/* ── CONTACT SECTION ──────────────────────────────── */}
+        <div data-reveal="slide-left" className="contact-section">
+          <ContactSection />
+        </div>
+
+        {/* ── FOOTER ───────────────────────────────────────── */}
+        <footer data-reveal="fade" className="py-8 px-4 border-t border-border/50">
+          <div className="max-w-7xl mx-auto text-center text-sm text-foreground/40">
+            <p>&copy; 2026 Gervin Lee Enero. All rights reserved.</p>
+          </div>
+        </footer>
       </main>
     </>
   );

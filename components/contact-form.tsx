@@ -127,7 +127,7 @@ export function ContactForm() {
               <input
                 type="text"
                 name="name"
-                placeholder="John Doe"
+                placeholder="Name"
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -141,7 +141,7 @@ export function ContactForm() {
               <input
                 type="email"
                 name="email"
-                placeholder="you@example.com"
+                placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
                 required
