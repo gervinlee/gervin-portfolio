@@ -1,0 +1,554 @@
+'use client';
+
+import { ExternalLink, Github, ArrowLeft, ArrowRight, Camera, FileText } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import ImageModal from '@/components/image-modal';
+import { Canvas } from '@react-three/fiber';
+import { Stars, OrbitControls } from '@react-three/drei';
+
+// ─── Circuit Canvas Animation ─────────────────────────────────────────────────
+const GRID = 40;
+const NODE_PROB = 0.38;
+const BRANCH_PROB = 0.55;
+const PULSE_SPEED = 0.012;
+
+type Segment = {
+  x1: number; y1: number;
+  mx: number | null; my: number | null;
+  x2: number; y2: number;
+  phase: number; offset: number;
+};
+
+type Node = { x: number; y: number };
+
+function buildCircuit(width: number, height: number): { nodes: Node[]; segments: Segment[] } {
+  const cols = Math.ceil(width / GRID) + 2;
+  const rows = Math.ceil(height / GRID) + 2;
+  const nodes: Node[] = [];
+  const segments: Segment[] = [];
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      if (Math.random() < NODE_PROB) nodes.push({ x: col * GRID, y: row * GRID });
+    }
+  }
+
+  const dirs = [
+    { dx: GRID, dy: 0 }, { dx: -GRID, dy: 0 },
+    { dx: 0, dy: GRID }, { dx: 0, dy: -GRID },
+  ];
+
+  nodes.forEach(n => {
+    dirs.forEach(d => {
+      if (Math.random() < BRANCH_PROB) {
+        const ex = n.x + d.dx;
+        const ey = n.y + d.dy;
+        const hasCorner = Math.random() < 0.4;
+        if (hasCorner) {
+          const midX = Math.random() < 0.5 ? ex : n.x;
+          const midY = midX === ex ? n.y : ey;
+          segments.push({ x1: n.x, y1: n.y, mx: midX, my: midY, x2: ex, y2: ey, phase: Math.random() * Math.PI * 2, offset: 0 });
+        } else {
+          segments.push({ x1: n.x, y1: n.y, mx: null, my: null, x2: ex, y2: ey, phase: Math.random() * Math.PI * 2, offset: 0 });
+        }
+      }
+    });
+  });
+
+  return { nodes, segments };
+}
+
+function CircuitCanvas({ color }: { color: [number, number, number] }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animRef = useRef<number>(0);
+  const dataRef = useRef<{ nodes: Node[]; segments: Segment[] } | null>(null);
+  const [r, g, b] = color;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      dataRef.current = buildCircuit(canvas.width, canvas.height);
+    };
+
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    const draw = () => {
+      const ctx = canvas.getContext('2d');
+      if (!ctx || !dataRef.current) return;
+      const { nodes, segments } = dataRef.current;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      segments.forEach(s => {
+        s.offset = (s.offset + PULSE_SPEED) % 1;
+        const alpha = 0.15 + 0.12 * Math.sin(s.offset * Math.PI * 2 + s.phase);
+        ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(s.x1, s.y1);
+        if (s.mx !== null) { ctx.lineTo(s.mx, s.my!); ctx.lineTo(s.x2, s.y2); }
+        else ctx.lineTo(s.x2, s.y2);
+        ctx.stroke();
+
+        const pulseAlpha = 0.7 * Math.max(0, Math.sin(s.offset * Math.PI * 2 + s.phase));
+        if (pulseAlpha > 0.05) {
+          const t = s.offset;
+          let px: number, py: number;
+          if (s.mx !== null) {
+            if (t < 0.5) { const tt = t * 2; px = s.x1 + (s.mx - s.x1) * tt; py = s.y1 + (s.my! - s.y1) * tt; }
+            else { const tt = (t - 0.5) * 2; px = s.mx + (s.x2 - s.mx) * tt; py = s.my! + (s.y2 - s.my!) * tt; }
+          } else { px = s.x1 + (s.x2 - s.x1) * t; py = s.y1 + (s.y2 - s.y1) * t; }
+          ctx.beginPath();
+          ctx.arc(px, py, 3, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${r},${g},${b},${pulseAlpha})`;
+          ctx.fill();
+        }
+      });
+
+      nodes.forEach(n => {
+        const pulse = 0.35 + 0.3 * Math.sin(Date.now() * 0.002 + n.x * 0.1 + n.y * 0.1);
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${r},${g},${b},${pulse})`;
+        ctx.fill();
+      });
+
+      animRef.current = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => { cancelAnimationFrame(animRef.current); ro.disconnect(); };
+  }, [r, g, b]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ zIndex: 2 }}
+    />
+  );
+}
+
+// ─── Three.js Background ─────────────────────────────────────────────────────
+function ThreeBackground() {
+  return (
+    <div className="fixed inset-0 -z-20 pointer-events-none">
+      <Canvas camera={{ position: [0, 0, 1.8], fov: 55 }} gl={{ alpha: true, antialias: true }}>
+        <ambientLight intensity={0.15} />
+        <pointLight position={[15, 10, 10]} intensity={0.8} color="#f59e0b" />
+        <pointLight position={[-12, -8, -15]} intensity={0.5} color="#fb923c" />
+        <Stars radius={300} depth={70} count={7200} factor={4} saturation={0.6} fade speed={0.5} />
+        <group>
+          {Array.from({ length: 28 }).map((_, i) => (
+            <mesh
+              key={i}
+              position={[
+                (Math.random() - 0.5) * 160,
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 90 - 30
+              ]}
+            >
+              <sphereGeometry args={[1.8 + Math.random() * 2.8]} />
+              <meshBasicMaterial
+                color={i % 4 === 0 ? "#f59e0b" : i % 4 === 1 ? "#fb923c" : "#fed7aa"}
+                transparent
+                opacity={0.05 + Math.random() * 0.08}
+              />
+            </mesh>
+          ))}
+        </group>
+        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.08} />
+      </Canvas>
+    </div>
+  );
+}
+
+// ─── Projects Data ───────────────────────────────────────────────────────────
+type Project = {
+  title: string;
+  category: string;
+  description: string;
+  tech: string[];
+  features: string[];
+  image: string;
+  images: string[];
+  link: string | null;
+  github: string | null;
+  bgColor: string;
+  circuitColor: [number, number, number];
+  featured?: boolean;
+};
+
+const projects: Project[] = [
+  {
+    title: 'ResearchConnect+',
+    category: 'Web Development',
+    description: "A research management platform built for PLV's IT department — covering ERC compliance, topic proposals, repository access, and mentorship coordination.",
+    tech: ['React', 'Node.js', 'PostgreSQL', 'Tailwind CSS'],
+    features: ['ERC Compliance System', 'Topic Proposal', 'Repository', 'Mentorship Coordination'],
+    image: '/assets/researchconnect-login.png',
+    images: ['/assets/researchconnect-login.png', '/assets/researchconnect-2.png'],
+    link: 'https://erc-system.vercel.app/',
+    github: null,
+    bgColor: '#2a1f14',
+    circuitColor: [249, 115, 22],
+    featured: true,
+  },
+  {
+    title: 'Inventory Management System',
+    category: 'Web Development',
+    description: 'A comprehensive inventory system designed to streamline stock tracking, orders, and deliveries with real-time updates.',
+    tech: ['HTML', 'CSS', 'JavaScript', 'Java'],
+    features: ['Responsive design', 'Dark mode', 'Smooth animations', 'SEO optimized'],
+    image: '/assets/elegantea-cover.png',
+    images: ['/assets/elegantea-login.png', '/assets/elegantea-main.png'],
+    link: null,
+    github: null,
+    bgColor: '#1a1f14',
+    circuitColor: [234, 88, 12],
+  },
+  {
+    title: 'SatisTrack',
+    category: 'Full Stack',
+    description: 'Analytics platform for tracking and analyzing satisfaction metrics — real-time dashboards, trend analysis, and automated reporting tools.',
+    tech: ['React', 'Express', 'MongoDB', 'JWT Auth'],
+    features: ['User authentication', 'Volunteer tracking', 'Activity scheduling', 'Reporting system'],
+    image: '/assets/satistrack-landing.png',
+    images: ['/assets/satistrack-landing.png', '/assets/satistrack-login.png'],
+    link: 'https://satis-track.vercel.app/',
+    github: null,
+    bgColor: '#141a2a',
+    circuitColor: [251, 146, 60],
+    featured: true,
+  },
+  {
+    title: 'EA Printworks',
+    category: 'Web Development',
+    description: 'A full-featured printworks web platform covering orders, gallery, services, and contact — built for real client use.',
+    tech: ['React', 'Node.js', 'PostgreSQL', 'Tailwind CSS'],
+    features: ['Real-time inventory tracking', 'Order management', 'Delivery coordination', 'Analytics dashboard'],
+    image: '/assets/ea-printworks-landing.png',
+    images: ['/assets/ea-printworks-home.png', '/assets/ea-printworks-about.png', '/assets/ea-printworks-services.png', '/assets/ea-printworks-gallery.png', '/assets/ea-printworks-contact.png', '/assets/ea-printworks-order.png'],
+    link: null,
+    github: null,
+    bgColor: '#1a1420',
+    circuitColor: [249, 115, 22],
+  },
+  {
+    title: 'Grade Management System',
+    category: 'System',
+    description: 'A comprehensive grade management system designed to streamline grading, reporting, and analytics with real-time updates.',
+    tech: ['HTML', 'CSS', 'SQL', 'Python'],
+    features: ['Real-time grade tracking', 'Automated reporting', 'Performance analytics', 'User management'],
+    image: '/assets/grade-system-portal.png',
+    images: ['/assets/grade-system-student.png', '/assets/grade-system-admin.png'],
+    link: null,
+    github: null,
+    bgColor: '#141a14',
+    circuitColor: [234, 88, 12],
+  },
+];
+
+// ─── Works Data ──────────────────────────────────────────────────────────────
+const academicWorks = [
+  { title: 'Vision Board', description: 'A vision board design aimed at helping people visualize their goals effectively.', details: 'Academic Design Project | 2024', image: '/assets/visionboard.png' },
+  { title: 'Ecosia Flyer', description: 'A promotional flyer for Ecosia, highlighting the mission to plant trees.', details: 'Academic Design Project | 2024', image: '/assets/ecosiaflyer.png' },
+  { title: 'About Me Poster', description: 'An engaging poster that introduces the creator, discussing skills, interests, and background.', details: 'Academic Design Project | 2024', image: '/assets/aboutmeposter.png' },
+  { 
+    title: 'Barikada Rule Book', 
+    description: 'A comprehensive rulebook for the Barikada game.', 
+    details: 'Game Rule Book | 2025', 
+    image: '/assets/rulebook-cover.png',
+    pdf: '/assets/rule-book.pdf' 
+  },
+];
+
+const multimediaWorks = [
+  { title: 'Artist Profile', description: "A profile piece showcasing the artist's work, style, and influences.", details: 'Multimedia Project | 2024', image: '/assets/artistprofile.jpg' },
+  { title: 'Book Cover Design', description: "A captivating book cover design reflecting the book's theme.", details: 'Multimedia Design | 2024', image: '/assets/ENERO_BOOKCOVER.png' },
+  { title: 'Typographic', description: 'A comprehensive brand identity document including logos, color palettes, and guidelines.', details: 'Multimedia Works | 2024', image: '/assets/typographic.png' },
+  { title: 'Geometric', description: 'A comprehensive brand identity document including logos, color palettes, and guidelines.', details: 'Multimedia Works | 2024', image: '/assets/geometric.png' },
+  { title: 'Brandboard', description: 'A comprehensive brand identity document including logos, color palettes, and guidelines.', details: 'Branding Project | 2024', image: '/assets/brandboard.png' },
+];
+
+const personalWorks = [
+  { title: 'Personal Portfolio', description: 'My own modern portfolio website built with Next.js and Tailwind CSS.', details: 'Personal Project | 2025', image: '/assets/portfolio.png' },
+];
+
+// ─── Slide Transition ────────────────────────────────────────────────────────
+type SlideDirection = 'left' | 'right' | null;
+
+function useSlideTransition(current: number) {
+  const [displayed, setDisplayed] = useState(current);
+  const [phase, setPhase] = useState<'idle' | 'exit' | 'enter'>('idle');
+  const [direction, setDirection] = useState<SlideDirection>(null);
+  const prevRef = useRef(current);
+
+  useEffect(() => {
+    if (current === prevRef.current) return;
+    const dir: SlideDirection = current > prevRef.current ? 'right' : 'left';
+    setDirection(dir);
+    setPhase('exit');
+
+    const t1 = setTimeout(() => {
+      setDisplayed(current);
+      setPhase('enter');
+      prevRef.current = current;
+    }, 220);
+
+    const t2 = setTimeout(() => setPhase('idle'), 500);
+
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [current]);
+
+  return { displayed, phase, direction };
+}
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
+export default function ProjectsAndWorks() {
+  const [currentProject, setCurrentProject] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'academic' | 'multimedia' | 'personal'>('all');
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImages, setModalImages] = useState<string[]>([]);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalPdf, setModalPdf] = useState<string | null>(null);
+
+  const startXRef = useRef(0);
+  const totalProjects = projects.length;
+  const { displayed, phase } = useSlideTransition(currentProject);
+
+  const goToProject = useCallback((idx: number) => {
+    if (animating) return;
+    const clamped = Math.max(0, Math.min(totalProjects - 1, idx));
+    if (clamped === currentProject) return;
+    setAnimating(true);
+    setCurrentProject(clamped);
+    setTimeout(() => setAnimating(false), 500);
+  }, [animating, currentProject, totalProjects]);
+
+  const openModal = (images: string[], title: string, pdf?: string) => {
+    setModalImages(images);
+    setModalTitle(title);
+    setModalPdf(pdf || null);
+    setModalOpen(true);
+  };
+
+  const currentProjectData = projects[displayed];
+
+  const filteredWorks = selectedCategory === 'all'
+    ? [...academicWorks.map(w => ({ ...w, category: 'academic' as const })),
+       ...multimediaWorks.map(w => ({ ...w, category: 'multimedia' as const })),
+       ...personalWorks.map(w => ({ ...w, category: 'personal' as const }))]
+    : selectedCategory === 'academic' ? academicWorks.map(w => ({ ...w, category: 'academic' as const }))
+    : selectedCategory === 'multimedia' ? multimediaWorks.map(w => ({ ...w, category: 'multimedia' as const }))
+    : personalWorks.map(w => ({ ...w, category: 'personal' as const }));
+
+  const imageClasses = `absolute inset-0 bg-cover bg-center transition-transform duration-[700ms] ease-out ${phase === 'idle' ? 'scale-100' : 'scale-[1.08]'}`;
+
+  return (
+    <main className="min-h-screen pt-16 bg-background relative overflow-x-hidden">
+      <ThreeBackground />
+
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        <div className="circuit-overlay" />
+        <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 70%)' }} />
+        <div className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-20" style={{ background: 'radial-gradient(circle, #fb923c 0%, transparent 70%)' }} />
+      </div>
+
+      {/* Featured Projects */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-center mb-6 tracking-tight gradient-text">Featured Projects</h1>
+        <p className="text-center text-foreground/60 text-lg max-w-2xl mx-auto">Turning ideas into functional and beautiful digital experiences</p>
+      </section>
+
+      {/* Compact Project Carousel */}
+      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-16">
+        <div
+          className="rounded-3xl overflow-hidden border border-border/60 shadow-2xl bg-card/95 backdrop-blur-2xl"
+          onPointerDown={(e) => { startXRef.current = e.clientX; }}
+          onPointerUp={(e) => {
+            const diff = startXRef.current - e.clientX;
+            if (Math.abs(diff) > 40) diff > 0 ? goToProject(currentProject + 1) : goToProject(currentProject - 1);
+          }}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[380px]">
+            <div className="relative overflow-hidden min-h-[220px] lg:min-h-[380px] group">
+              <div className={imageClasses} style={{ backgroundImage: `url('${currentProjectData.image}')`, backgroundColor: currentProjectData.bgColor }} />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent z-10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-10" />
+              <CircuitCanvas color={currentProjectData.circuitColor} />
+
+              <button
+                onClick={() => openModal(currentProjectData.images, currentProjectData.title)}
+                className="absolute bottom-4 left-4 z-30 flex items-center gap-2 bg-black/70 backdrop-blur-md text-white/90 text-xs px-4 py-1.5 rounded-2xl border border-white/10 hover:bg-black/90 hover:scale-105 transition-all"
+              >
+                <Camera className="w-4 h-4" /> Screenshots
+              </button>
+            </div>
+
+            <div className="p-5 lg:p-8 flex flex-col justify-between bg-card border-l border-border/60">
+              <div className={`transition-all duration-500 ${phase === 'idle' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-xs font-semibold tracking-widest uppercase px-3.5 py-1 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20">
+                    {currentProjectData.category}
+                  </span>
+                  {currentProjectData.featured && (
+                    <span className="text-xs font-bold tracking-widest uppercase px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">Featured</span>
+                  )}
+                </div>
+
+                <h2 className="text-xl lg:text-3xl font-black tracking-tight mb-3">{currentProjectData.title}</h2>
+                <p className="text-foreground/70 leading-tight mb-6 text-[14.5px]">{currentProjectData.description}</p>
+
+                <div className="mb-6">
+                  <h3 className="uppercase text-xs tracking-widest text-foreground/50 mb-2">Tech Stack</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {currentProjectData.tech.map((tech, i) => (
+                      <span key={i} className="text-xs px-3 py-1 bg-muted rounded-xl border border-border hover:border-orange-500/50 hover:bg-orange-500/5 transition-all">{tech}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="uppercase text-xs tracking-widest text-foreground/50 mb-2">Key Features</h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 text-[14px] text-foreground/70">
+                    {currentProjectData.features.map((f, i) => (
+                      <li key={i} className="flex items-start gap-2"><span className="text-orange-500 mt-1">•</span><span>{f}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-6">
+                {currentProjectData.link ? (
+                  <a href={currentProjectData.link} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all">
+                    View Project <ExternalLink className="w-4 h-4" />
+                  </a>
+                ) : (
+                  <span className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 bg-muted text-muted-foreground font-semibold rounded-2xl">Unavailable</span>
+                )}
+                {currentProjectData.github ? (
+                  <a href={currentProjectData.github} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 border border-orange-500/30 text-orange-500 hover:bg-orange-500/10 font-semibold rounded-2xl transition-all">
+                    <Github className="w-4 h-4" /> Code
+                  </a>
+                ) : (
+                  <span className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 border border-border text-muted-foreground font-semibold rounded-2xl"><Github className="w-4 h-4" /> Code</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center justify-between mt-6 px-2">
+          <div className="flex gap-3">
+            {projects.map((_, i) => (
+              <button key={i} onClick={() => goToProject(i)} className={`h-2 rounded-full transition-all ${i === currentProject ? 'w-12 bg-orange-500' : 'w-6 bg-border hover:bg-orange-500/50'}`} />
+            ))}
+          </div>
+          <span className="text-sm tabular-nums text-foreground/50">{currentProject + 1} / {totalProjects}</span>
+          <div className="flex gap-3">
+            <button onClick={() => goToProject(currentProject - 1)} disabled={currentProject === 0 || animating} className="w-10 h-10 rounded-2xl border border-border flex items-center justify-center hover:bg-muted disabled:opacity-40 transition-all"><ArrowLeft className="w-4 h-4" /></button>
+            <button onClick={() => goToProject(currentProject + 1)} disabled={currentProject === totalProjects - 1 || animating} className="w-10 h-10 rounded-2xl border border-border flex items-center justify-center hover:bg-muted disabled:opacity-40 transition-all"><ArrowRight className="w-4 h-4" /></button>
+          </div>
+        </div>
+      </section>
+
+      {/* More Works Section */}
+      <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-20">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-black tracking-tight gradient-text">More Works</h2>
+          <p className="text-foreground/60 mt-2">Academic • Multimedia • Personal</p>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {[
+            { value: 'all', label: 'All Works' },
+            { value: 'academic', label: 'Academic' },
+            { value: 'multimedia', label: 'Multimedia' },
+            { value: 'personal', label: 'Personal Works' },
+          ].map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setSelectedCategory(filter.value as any)}
+              className={`px-6 py-2.5 rounded-full font-medium transition-all ${selectedCategory === filter.value ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg' : 'border border-border hover:border-orange-500 text-foreground'}`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredWorks.map((work: any, idx) => {
+            const isPdf = 'pdf' in work && !!work.pdf;
+            return (
+              <div 
+                key={idx} 
+                onClick={() => openModal([work.image], work.title, isPdf ? work.pdf : undefined)}
+                className="group rounded-3xl overflow-hidden border border-border bg-card hover:shadow-xl transition-all cursor-pointer relative"
+              >
+                <div className="h-64 overflow-hidden">
+                  <img 
+                    src={work.image} 
+                    alt={work.title} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  />
+                  {isPdf && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="text-center">
+                        <FileText className="w-12 h-12 mx-auto text-white mb-2" />
+                        <p className="text-white font-medium">View PDF</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="p-6">
+                  <h3 className="font-bold text-lg mb-2 group-hover:text-orange-500 transition-colors">{work.title}</h3>
+                  <p className="text-foreground/70 text-sm mb-3 line-clamp-3">{work.description}</p>
+                  <p className="text-xs text-foreground/50">{work.details}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="rounded-3xl border border-border/60 bg-card/80 p-12 text-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <h2 className="text-4xl font-black tracking-tight mb-4">Interested in collaborating?</h2>
+          <p className="text-lg text-foreground/70 max-w-2xl mx-auto mb-10">I'm always open to new opportunities and exciting projects. Let's create something amazing together.</p>
+          <a href="mailto:gervinleobi@gmail.com" className="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg">
+            Get In Touch <ArrowRight className="w-5 h-5" />
+          </a>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-8 px-4 border-t border-border/50">
+        <div className="max-w-7xl mx-auto text-center text-sm text-foreground/40">
+          <p>&copy; 2026 Gervin Lee Enero. All rights reserved.</p>
+        </div>
+      </footer>
+
+      <ImageModal 
+        isOpen={modalOpen} 
+        images={modalImages} 
+        title={modalTitle} 
+        pdf={modalPdf}
+        onClose={() => {
+          setModalOpen(false);
+          setModalPdf(null);
+        }} 
+      />
+    </main>
+  );
+}
