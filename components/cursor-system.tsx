@@ -9,16 +9,16 @@ interface Particle {
   y: number;
   vx: number;
   vy: number;
-  life: number;       // 1 → 0
+  life: number;
   size: number;
-  hue: number;        // 20–40 orange range
+  hue: number;
 }
 
 interface CursorState {
   x: number;
   y: number;
-  ringX: number;      // lagged ring position
-  ringY: number;
+  trailX: number;
+  trailY: number;
   label: string;
   isPointer: boolean;
   isText: boolean;
@@ -26,20 +26,18 @@ interface CursorState {
   clicking: boolean;
 }
 
-// ─── Magnetic targets ─────────────────────────────────────────────────────────
-const MAGNETIC_SELECTOR = 'a, button, [role="button"], [data-magnetic]';
-const MAGNETIC_STRENGTH = 0.38;   // 0 = no pull, 1 = snaps to center
-const MAGNETIC_RADIUS   = 90;     // px from element edge
+// ─── Interactive targets ──────────────────────────────────────────────────────
+const INTERACTIVE_SELECTOR = 'a, button, [role="button"], [data-magnetic]';
 
-// ─── Label map: element → short HUD text ────────────────────────────────────
+// ─── Label map ────────────────────────────────────────────────────────────────
 function getLabel(el: Element | null): string {
   if (!el) return '';
-  const tag = el.tagName.toLowerCase();
-  const role = el.getAttribute('role');
-  const type = el.getAttribute('type');
+  const tag   = el.tagName.toLowerCase();
+  const role  = el.getAttribute('role');
+  const type  = el.getAttribute('type');
   const label = el.getAttribute('data-cursor-label');
   if (label) return label;
-  if (tag === 'a')      return 'VISIT';
+  if (tag === 'a') return 'VISIT';
   if (tag === 'button' || role === 'button') {
     const txt = (el.textContent || '').trim().toUpperCase().slice(0, 10);
     return txt || 'CLICK';
@@ -50,11 +48,57 @@ function getLabel(el: Element | null): string {
   return '';
 }
 
+// ─── SVG Arrow cursor (rendered via DOM directly for perf) ───────────────────
+// The arrow SVG is injected once; we transform the wrapper div each frame.
+const ARROW_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="30" viewBox="0 0 24 30" fill="none">
+  <defs>
+    <filter id="cur-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="cur-glow-hover" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="3.8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Shadow / depth layer -->
+  <path
+    d="M3 2 L3 22 L9 16 L14 27 L17 26 L12 15 L20 15 Z"
+    fill="rgba(0,0,0,0.25)"
+    transform="translate(1.5, 1.5)"
+  />
+
+  <!-- Main arrow body -->
+  <path
+    class="cur-arrow-body"
+    d="M3 2 L3 22 L9 16 L14 27 L17 26 L12 15 L20 15 Z"
+    filter="url(#cur-glow)"
+  />
+
+  <!-- Inner highlight edge -->
+  <path
+    class="cur-arrow-edge"
+    d="M3 2 L3 22 L9 16 L14 27 L17 26 L12 15 L20 15 Z"
+    fill="none"
+    stroke-width="0.6"
+    opacity="0.6"
+  />
+</svg>
+`;
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function CursorSystem() {
   const rafRef        = useRef<number>(0);
   const stateRef      = useRef<CursorState>({
-    x: -200, y: -200, ringX: -200, ringY: -200,
+    x: -200, y: -200, trailX: -200, trailY: -200,
     label: '', isPointer: false, isText: false,
     isHidden: false, clicking: false,
   });
@@ -62,39 +106,38 @@ export default function CursorSystem() {
   const particleIdRef = useRef(0);
   const lastPosRef    = useRef({ x: -200, y: -200 });
   const frameRef      = useRef(0);
+  const clickBurstRef = useRef(0); // countdown for click burst scale
 
   // DOM refs
-  const dotRef        = useRef<HTMLDivElement>(null);
-  const ringRef       = useRef<HTMLDivElement>(null);
-  const ring2Ref      = useRef<HTMLDivElement>(null);
-  const labelRef      = useRef<HTMLDivElement>(null);
-  const canvasRef     = useRef<HTMLCanvasElement>(null);
+  const wrapperRef  = useRef<HTMLDivElement>(null);  // arrow wrapper
+  const svgRef      = useRef<SVGSVGElement>(null);
+  const labelRef    = useRef<HTMLDivElement>(null);
+  const dotRef      = useRef<HTMLDivElement>(null);   // tiny accent dot
+  const canvasRef   = useRef<HTMLCanvasElement>(null);
 
-  // ── Spawn a particle at (x, y) ─────────────────────────────────────────────
+  // ── Spawn particle ─────────────────────────────────────────────────────────
   const spawnParticle = useCallback((x: number, y: number) => {
     const angle = Math.random() * Math.PI * 2;
-    const speed = 0.4 + Math.random() * 1.2;
+    const speed = 0.5 + Math.random() * 1.4;
     particlesRef.current.push({
       id:   particleIdRef.current++,
       x, y,
       vx:   Math.cos(angle) * speed,
-      vy:   Math.sin(angle) * speed - 0.6,
+      vy:   Math.sin(angle) * speed - 0.5,
       life: 1,
-      size: 1.5 + Math.random() * 2.5,
-      hue:  20 + Math.random() * 25,
+      size: 1.2 + Math.random() * 2,
+      hue:  18 + Math.random() * 22,
     });
-    // cap pool
-    if (particlesRef.current.length > 60) particlesRef.current.shift();
+    if (particlesRef.current.length > 50) particlesRef.current.shift();
   }, []);
 
-  // ── Main animation loop ────────────────────────────────────────────────────
+  // ── Animation loop ─────────────────────────────────────────────────────────
   useEffect(() => {
-    const canvas  = canvasRef.current;
-    const dot     = dotRef.current;
-    const ring    = ringRef.current;
-    const ring2   = ring2Ref.current;
-    const labelEl = labelRef.current;
-    if (!canvas || !dot || !ring || !ring2 || !labelEl) return;
+    const canvas   = canvasRef.current;
+    const wrapper  = wrapperRef.current;
+    const labelEl  = labelRef.current;
+    const dotEl    = dotRef.current;
+    if (!canvas || !wrapper || !labelEl || !dotEl) return;
 
     const ctx = canvas.getContext('2d')!;
 
@@ -105,60 +148,88 @@ export default function CursorSystem() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Laggy ring follow speed
-    const RING_EASE  = 0.11;
-    const RING2_EASE = 0.06;
-    let ring2X = -200, ring2Y = -200;
+    // Resolve the theme orange color from CSS vars at runtime
+    const getAccentColor = () => {
+      const root  = document.documentElement;
+      const style = getComputedStyle(root);
+      // Try to read --primary or fall back to the portfolio orange
+      const primary = style.getPropertyValue('--primary').trim();
+      return primary || 'oklch(0.65 0.22 30)'; // orange fallback
+    };
+
+    const TRAIL_EASE = 0.14;
+    let trailX = -200, trailY = -200;
+
+    // Idle breathe: oscillates glow intensity
+    let breatheT = 0;
 
     const loop = () => {
       frameRef.current++;
+      breatheT += 0.025;
       const s = stateRef.current;
 
-      // ── Lerp rings ────────────────────────────────────────────────────────
-      s.ringX += (s.x - s.ringX) * RING_EASE;
-      s.ringY += (s.y - s.ringY) * RING_EASE;
-      ring2X  += (s.x - ring2X)  * RING2_EASE;
-      ring2Y  += (s.y - ring2Y)  * RING2_EASE;
+      // ── Trail lerp (for accent dot only) ────────────────────────────────
+      trailX += (s.x - trailX) * TRAIL_EASE;
+      trailY += (s.y - trailY) * TRAIL_EASE;
 
-      // ── Move dot (instant) ────────────────────────────────────────────────
-      dot.style.transform = `translate(${s.x - 4}px, ${s.y - 4}px) scale(${s.clicking ? 0.5 : s.isPointer ? 1.4 : 1})`;
+      // ── Click burst countdown ────────────────────────────────────────────
+      if (clickBurstRef.current > 0) clickBurstRef.current--;
 
-      // ── Ring 1 (holographic, medium lag) ──────────────────────────────────
-      const ringSize = s.isPointer ? 44 : s.isText ? 36 : 32;
-      ring.style.transform  = `translate(${s.ringX - ringSize / 2}px, ${s.ringY - ringSize / 2}px) scale(${s.clicking ? 0.7 : 1}) rotate(${frameRef.current * 0.8}deg)`;
-      ring.style.width      = `${ringSize}px`;
-      ring.style.height     = `${ringSize}px`;
-      ring.style.opacity    = s.isHidden ? '0' : '1';
+      // ── Arrow wrapper transform ──────────────────────────────────────────
+      // Arrow tip is at (3, 2) in SVG space — offset so tip = cursor hotspot
+      const baseScale   = s.isPointer ? 1.12 : 1;
+      const clickScale  = s.clicking || clickBurstRef.current > 0 ? 0.82 : 1;
+      const scale       = baseScale * clickScale;
+      // Small rotation on hover for a "ready" feel
+      const rot         = s.isPointer ? -6 : 0;
 
-      // ── Ring 2 (outer glow, heavy lag) ────────────────────────────────────
-      const ring2Size = s.isPointer ? 72 : 56;
-      ring2.style.transform = `translate(${ring2X - ring2Size / 2}px, ${ring2Y - ring2Size / 2}px) rotate(${-frameRef.current * 0.4}deg)`;
-      ring2.style.width     = `${ring2Size}px`;
-      ring2.style.height    = `${ring2Size}px`;
-      ring2.style.opacity   = s.isHidden ? '0' : s.isPointer ? '0.7' : '0.35';
+      wrapper.style.transform  = `translate(${s.x}px, ${s.y}px) rotate(${rot}deg) scale(${scale})`;
+      wrapper.style.opacity    = s.isHidden ? '0' : '1';
 
-      // ── Label ─────────────────────────────────────────────────────────────
+      // Glow intensity breathe: ramp up on hover
+      const baseGlow  = 0.7 + 0.15 * Math.sin(breatheT);
+      const glowMult  = s.isPointer ? 1.6 : s.clicking ? 2 : baseGlow;
+      wrapper.style.filter = `brightness(${glowMult})`;
+
+      // Swap SVG filter to stronger glow on hover
+      const svg = wrapper.querySelector('svg');
+      if (svg) {
+        const bodyPath = svg.querySelector('.cur-arrow-body') as SVGPathElement | null;
+        const edgePath = svg.querySelector('.cur-arrow-edge') as SVGPathElement | null;
+        if (bodyPath) {
+          bodyPath.setAttribute('filter', s.isPointer ? 'url(#cur-glow-hover)' : 'url(#cur-glow)');
+        }
+        if (edgePath) {
+          edgePath.style.opacity = s.isPointer ? '0.9' : '0.6';
+        }
+      }
+
+      // ── Accent dot (lagged, smaller) ────────────────────────────────────
+      dotEl.style.transform = `translate(${trailX - 3}px, ${trailY - 3}px)`;
+      dotEl.style.opacity   = s.isHidden || s.isPointer ? '0' : '0.6';
+
+      // ── Label ───────────────────────────────────────────────────────────
       const hasLabel = !!s.label;
-      labelEl.textContent   = s.label;
-      labelEl.style.transform = `translate(${s.ringX + ringSize / 2 + 10}px, ${s.ringY - 8}px)`;
+      labelEl.textContent     = s.label;
+      labelEl.style.transform = `translate(${s.x + 18}px, ${s.y - 6}px)`;
       labelEl.style.opacity   = hasLabel && !s.isHidden ? '1' : '0';
 
-      // ── Particles on canvas ───────────────────────────────────────────────
+      // ── Particles on canvas ─────────────────────────────────────────────
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particlesRef.current = particlesRef.current.filter(p => p.life > 0.02);
       particlesRef.current.forEach(p => {
         p.x    += p.vx;
         p.y    += p.vy;
-        p.vy   += 0.04;   // gravity
+        p.vy   += 0.035;
         p.vx   *= 0.97;
-        p.life -= 0.028;
+        p.life -= 0.03;
 
-        const a = p.life;
+        const a = p.life * p.life; // quadratic fade = sharper tail
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue}, 90%, 58%, ${a})`;
-        ctx.shadowColor  = `hsla(${p.hue}, 100%, 60%, ${a * 0.6})`;
-        ctx.shadowBlur   = 6;
+        ctx.fillStyle    = `hsla(${p.hue}, 88%, 56%, ${a})`;
+        ctx.shadowColor  = `hsla(${p.hue}, 100%, 62%, ${a * 0.5})`;
+        ctx.shadowBlur   = 5;
         ctx.fill();
         ctx.shadowBlur   = 0;
       });
@@ -168,92 +239,59 @@ export default function CursorSystem() {
 
     rafRef.current = requestAnimationFrame(loop);
 
-    // ── Mouse events ──────────────────────────────────────────────────────────
+    // ── Mouse events ─────────────────────────────────────────────────────────
     const onMove = (e: MouseEvent) => {
-      const s = stateRef.current;
+      const s    = stateRef.current;
+      s.x = e.clientX;
+      s.y = e.clientY;
 
-      // Magnetic pull
-      let tx = e.clientX, ty = e.clientY;
-      const elements = document.querySelectorAll<HTMLElement>(MAGNETIC_SELECTOR);
-      let closestDist = Infinity;
-      let closestEl: HTMLElement | null = null;
-
-      elements.forEach(el => {
-        const r    = el.getBoundingClientRect();
-        const cx   = r.left + r.width  / 2;
-        const cy   = r.top  + r.height / 2;
-        const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
-        if (dist < closestDist) { closestDist = dist; closestEl = el; }
-
-        // Magnetic offset on the element itself
-        if (dist < MAGNETIC_RADIUS) {
-          const pull = (1 - dist / MAGNETIC_RADIUS) * MAGNETIC_STRENGTH;
-          el.style.transform = `translate(${(e.clientX - cx) * pull}px, ${(e.clientY - cy) * pull}px)`;
-          el.style.transition = 'transform 0.1s ease';
-        } else {
-          el.style.transform  = '';
-          el.style.transition = 'transform 0.4s cubic-bezier(0.22,1,0.36,1)';
-        }
-      });
-
-      // Cursor pull toward nearest magnetic target
-      if (closestEl && closestDist < MAGNETIC_RADIUS) {
-        const r  = (closestEl as HTMLElement).getBoundingClientRect();
-        const cx = r.left + r.width  / 2;
-        const cy = r.top  + r.height / 2;
-        const pull = (1 - closestDist / MAGNETIC_RADIUS) * MAGNETIC_STRENGTH * 0.5;
-        tx = e.clientX + (cx - e.clientX) * pull;
-        ty = e.clientY + (cy - e.clientY) * pull;
-      }
-
-      s.x = tx;
-      s.y = ty;
-
-      // Detect target under native cursor
-      const target = document.elementFromPoint(e.clientX, e.clientY);
-      const interactive = target?.closest(MAGNETIC_SELECTOR);
+      const target      = document.elementFromPoint(e.clientX, e.clientY);
+      const interactive = target?.closest(INTERACTIVE_SELECTOR);
       const textInput   = target?.closest('input, textarea');
       s.isPointer = !!interactive;
       s.isText    = !!textInput;
       s.label     = getLabel(interactive ?? null);
 
-      // Spawn trail particles when moving fast enough
-      const dx = e.clientX - lastPosRef.current.x;
-      const dy = e.clientY - lastPosRef.current.y;
+      const dx    = e.clientX - lastPosRef.current.x;
+      const dy    = e.clientY - lastPosRef.current.y;
       const speed = Math.hypot(dx, dy);
-      if (speed > 3 && frameRef.current % 2 === 0) {
+      if (speed > 4 && frameRef.current % 2 === 0) {
         spawnParticle(e.clientX, e.clientY);
       }
       lastPosRef.current = { x: e.clientX, y: e.clientY };
     };
 
-    const onDown  = () => { stateRef.current.clicking = true;  spawnParticle(stateRef.current.x, stateRef.current.y); spawnParticle(stateRef.current.x, stateRef.current.y); spawnParticle(stateRef.current.x, stateRef.current.y); };
+    const onDown = () => {
+      stateRef.current.clicking = true;
+      clickBurstRef.current = 8;
+      // burst of particles on click
+      for (let i = 0; i < 5; i++) spawnParticle(stateRef.current.x, stateRef.current.y);
+    };
     const onUp    = () => { stateRef.current.clicking = false; };
     const onLeave = () => { stateRef.current.isHidden = true;  };
     const onEnter = () => { stateRef.current.isHidden = false; };
 
-    window.addEventListener('mousemove',  onMove);
-    window.addEventListener('mousedown',  onDown);
-    window.addEventListener('mouseup',    onUp);
+    window.addEventListener('mousemove',    onMove);
+    window.addEventListener('mousedown',    onDown);
+    window.addEventListener('mouseup',      onUp);
     document.addEventListener('mouseleave', onLeave);
     document.addEventListener('mouseenter', onEnter);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('resize',    resize);
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mousedown', onDown);
-      window.removeEventListener('mouseup',   onUp);
+      window.removeEventListener('resize',      resize);
+      window.removeEventListener('mousemove',   onMove);
+      window.removeEventListener('mousedown',   onDown);
+      window.removeEventListener('mouseup',     onUp);
       document.removeEventListener('mouseleave', onLeave);
       document.removeEventListener('mouseenter', onEnter);
     };
   }, [spawnParticle]);
 
-  // Hide on touch devices
+  // ── Hide on touch devices ─────────────────────────────────────────────────
   const [isTouch, setIsTouch] = useState(false);
   useEffect(() => {
-    const check = () => setIsTouch(window.matchMedia('(pointer: coarse)').matches);
-    check();
+    setIsTouch(window.matchMedia('(pointer: coarse)').matches);
   }, []);
 
   if (isTouch) return null;
@@ -261,7 +299,7 @@ export default function CursorSystem() {
   return (
     <>
       <style>{`
-        /* Hide native cursor globally */
+        /* ── Hide native cursor ── */
         *, *::before, *::after { cursor: none !important; }
 
         /* ── Particle canvas ── */
@@ -271,115 +309,102 @@ export default function CursorSystem() {
           z-index: 99990;
         }
 
-        /* ── Dot (instant, center) ── */
-        .cur-dot {
-          position: fixed; top: 0; left: 0;
-          width: 8px; height: 8px;
-          border-radius: 50%;
-          background: #ea580c;
-          box-shadow: 0 0 10px #ea580c, 0 0 22px rgba(234,88,12,0.5);
+        /* ── Arrow SVG wrapper ── */
+        /* Tip of the arrow sits exactly at (0,0) of wrapper = cursor hotspot */
+        .cur-arrow {
+          position: fixed;
+          top: 0; left: 0;
+          /* offset so SVG tip (3,2) aligns to hotspot */
+          margin-left: -3px;
+          margin-top: -2px;
           pointer-events: none;
           z-index: 99999;
-          will-change: transform;
-          transition: transform 0.08s cubic-bezier(0.22,1,0.36,1);
+          will-change: transform, filter;
+          transition:
+            opacity 0.2s ease,
+            filter  0.15s ease;
         }
 
-        /* ── Ring 1 — holographic spinning ring ── */
-        .cur-ring {
+        /* Arrow body fill — orange from portfolio palette */
+        .cur-arrow-body {
+          fill: #ea580c;       /* orange-600: default dark-mode color */
+          transition: filter 0.15s;
+        }
+
+        /* Light mode override */
+        @media (prefers-color-scheme: light) {
+          .cur-arrow-body { fill: #c2410c; }  /* orange-700: more contrast on white */
+        }
+
+        /* Or if the site uses a .dark class on <html> (next-themes) */
+        :root.dark  .cur-arrow-body { fill: #ea580c; }
+        :root.light .cur-arrow-body { fill: #c2410c; }
+
+        /* Edge stroke matches body */
+        .cur-arrow-edge {
+          stroke: #fed7aa;     /* orange-200: bright inner highlight */
+          transition: opacity 0.15s;
+        }
+        :root.light .cur-arrow-edge { stroke: #7c2d12; }
+
+        /* ── Accent dot (lagged, subtle) ── */
+        .cur-dot {
           position: fixed; top: 0; left: 0;
+          width: 6px; height: 6px;
           border-radius: 50%;
+          background: #fb923c;
+          box-shadow: 0 0 6px #fb923c, 0 0 14px rgba(251,146,60,0.4);
           pointer-events: none;
           z-index: 99998;
-          will-change: transform, width, height;
-          transition: width 0.25s, height 0.25s, opacity 0.3s;
-
-          /* Conic gradient = holographic shimmer */
-          background: conic-gradient(
-            from 0deg,
-            transparent 0%,
-            rgba(234,88,12,0.9)  8%,
-            rgba(251,146,60,1)   15%,
-            rgba(253,224,71,0.8) 20%,
-            rgba(251,146,60,0.6) 25%,
-            transparent 35%,
-            rgba(234,88,12,0.4)  50%,
-            rgba(251,146,60,0.7) 60%,
-            rgba(234,88,12,0.9)  70%,
-            transparent 80%,
-            rgba(251,146,60,0.5) 92%,
-            transparent 100%
-          );
-          /* Mask: only show a thin ring */
-          -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
-                  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
-          filter: drop-shadow(0 0 4px rgba(234,88,12,0.8));
+          will-change: transform, opacity;
+          transition: opacity 0.2s;
+        }
+        :root.light .cur-dot {
+          background: #ea580c;
+          box-shadow: 0 0 6px #ea580c;
         }
 
-        /* ── Ring 2 — outer glow ring, counter-rotate, heavier lag ── */
-        .cur-ring2 {
-          position: fixed; top: 0; left: 0;
-          border-radius: 50%;
-          pointer-events: none;
-          z-index: 99997;
-          will-change: transform;
-          transition: width 0.35s, height 0.35s, opacity 0.3s;
-          border: 1px solid rgba(234,88,12,0.4);
-          box-shadow:
-            inset 0 0 8px rgba(234,88,12,0.15),
-                  0 0 12px rgba(234,88,12,0.2);
-          /* dashed look via conic */
-          background: conic-gradient(
-            rgba(234,88,12,0.25)  0deg,   transparent 20deg,
-            rgba(251,146,60,0.15) 40deg,  transparent 60deg,
-            rgba(234,88,12,0.2)   80deg,  transparent 100deg,
-            rgba(251,146,60,0.1)  120deg, transparent 140deg,
-            rgba(234,88,12,0.2)   160deg, transparent 180deg,
-            rgba(251,146,60,0.15) 200deg, transparent 220deg,
-            rgba(234,88,12,0.25)  240deg, transparent 260deg,
-            rgba(251,146,60,0.2)  280deg, transparent 300deg,
-            rgba(234,88,12,0.15)  320deg, transparent 340deg,
-            rgba(251,146,60,0.1)  360deg
-          );
-          -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1.5px));
-                  mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1.5px));
-        }
-
-        /* ── Adaptive HUD label ── */
+        /* ── HUD label ── */
         .cur-label {
           position: fixed; top: 0; left: 0;
-          font-family: monospace;
-          font-size: 0.52rem;
-          font-weight: 800;
-          letter-spacing: 0.22em;
+          font-family: 'SF Mono', 'Fira Code', monospace;
+          font-size: 0.5rem;
+          font-weight: 700;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           color: rgba(251,146,60,0.95);
-          background: rgba(6,4,2,0.75);
-          border: 1px solid rgba(234,88,12,0.35);
-          border-radius: 4px;
-          padding: 2px 6px;
+          background: rgba(6,3,1,0.7);
+          border: 1px solid rgba(234,88,12,0.3);
+          border-radius: 3px;
+          padding: 2px 5px;
           pointer-events: none;
           z-index: 99999;
           will-change: transform, opacity;
-          transition: opacity 0.2s;
+          transition: opacity 0.18s;
           white-space: nowrap;
-          backdrop-filter: blur(4px);
-          box-shadow: 0 0 10px rgba(234,88,12,0.2);
+          backdrop-filter: blur(6px);
+        }
+        :root.light .cur-label {
+          color: rgba(194,65,12,0.95);
+          background: rgba(255,255,255,0.82);
+          border-color: rgba(234,88,12,0.25);
         }
       `}</style>
 
       {/* Particle canvas */}
       <canvas ref={canvasRef} className="cur-canvas" />
 
-      {/* Outer glow ring — heaviest lag */}
-      <div ref={ring2Ref} className="cur-ring2" />
+      {/* SVG Arrow cursor */}
+      <div
+        ref={wrapperRef}
+        className="cur-arrow"
+        dangerouslySetInnerHTML={{ __html: ARROW_SVG }}
+      />
 
-      {/* Holographic spinning ring — medium lag */}
-      <div ref={ringRef} className="cur-ring" />
-
-      {/* Instant dot */}
+      {/* Lagged accent dot */}
       <div ref={dotRef} className="cur-dot" />
 
-      {/* Adaptive label */}
+      {/* HUD label */}
       <div ref={labelRef} className="cur-label" />
     </>
   );

@@ -15,12 +15,12 @@ const skillGroups = [
     color: 'from-orange-500 to-amber-400',
     glow: 'rgba(249,115,22,0.35)',
     skills: [
-      { name: 'React', level: 92 },
-      { name: 'Next.js', level: 89 },
-      { name: 'TypeScript', level: 85 },
-      { name: 'JavaScript', level: 90 },
-      { name: 'Tailwind CSS', level: 95 },
-      { name: 'HTML & CSS', level: 97 },
+      { name: 'React', level: 75 },
+      { name: 'Next.js', level: 75 },
+      { name: 'TypeScript', level: 75 },
+      { name: 'JavaScript', level: 85 },
+      { name: 'Tailwind CSS', level: 80 },
+      { name: 'HTML & CSS', level: 95 },
     ],
   },
   {
@@ -29,10 +29,10 @@ const skillGroups = [
     color: 'from-orange-400 to-red-400',
     glow: 'rgba(251,146,60,0.30)',
     skills: [
-      { name: 'Figma', level: 91 },
-      { name: 'Canva', level: 85 },
+      { name: 'Figma', level: 95 },
+      { name: 'Canva', level: 98 },
       { name: 'VS Code', level: 95 },
-      { name: 'PyCharm', level: 72 },
+      { name: 'PyCharm', level: 80 },
     ],
   },
   {
@@ -41,8 +41,8 @@ const skillGroups = [
     color: 'from-rose-500 to-orange-400',
     glow: 'rgba(244,63,94,0.30)',
     skills: [
-      { name: 'Supabase', level: 78 },
-      { name: 'Vercel', level: 88 },
+      { name: 'Supabase', level: 75 },
+      { name: 'Vercel', level: 90 },
     ],
   },
 ];
@@ -370,17 +370,17 @@ export default function About() {
                   </div>
 
                   <div className="flex justify-center gap-4">
-                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-orange-500 transition-colors">
+                    <a href="https://facebook.com/gervinlee.enero" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-orange-500 transition-colors">
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M22 12.07C22 6.477 17.523 2 12 2S2 6.477 2 12.07c0 5.017 3.657 9.176 8.438 9.93v-7.03H7.898v-2.9h2.54V9.845c0-2.522 1.492-3.918 3.777-3.918 1.095 0 2.24.198 2.24.198v2.477h-1.262c-1.243 0-1.63.775-1.63 1.57v1.885h2.773l-.443 2.9h-2.33V22c4.78-.754 8.437-4.913 8.437-9.93z" />
                       </svg>
                     </a>
-                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-orange-500 transition-colors">
+                    <a href="https://linkedin.com/in/gervin-lee-enero" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-orange-500 transition-colors">
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20.447 20.452H16.89v-5.569c0-1.328-.026-3.037-1.85-3.037-1.85 0-2.134 1.445-2.134 2.939v5.667H9.35V9h3.414v1.561h.049c.476-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.063 2.063 0 1 1 0-4.126 2.063 2.063 0 0 1 0 4.126zM7.119 20.452H3.555V9h3.564v11.452z" />
                       </svg>
                     </a>
-                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-orange-500 transition-colors">
+                    <a href="https://github.com/gervinlee" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-orange-500 transition-colors">
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 .5C5.648.5.5 5.648.5 12a11.5 11.5 0 0 0 7.863 10.92c.575.105.785-.25.785-.556 0-.274-.01-1-.015-1.962-3.2.696-3.877-1.542-3.877-1.542-.523-1.328-1.278-1.682-1.278-1.682-1.045-.715.08-.7.08-.7 1.155.082 1.763 1.186 1.763 1.186 1.026 1.758 2.692 1.25 3.348.955.103-.743.402-1.25.73-1.538-2.554-.29-5.24-1.277-5.24-5.686 0-1.256.448-2.283 1.183-3.088-.119-.29-.513-1.46.112-3.043 0 0 .965-.309 3.162 1.18a10.96 10.96 0 0 1 5.756 0c2.196-1.489 3.16-1.18 3.16-1.18.627 1.583.233 2.753.115 3.043.737.805 1.182 1.832 1.182 3.088 0 4.42-2.69 5.393-5.252 5.678.413.355.78 1.055.78 2.126 0 1.536-.014 2.773-.014 3.15 0 .309.207.667.79.554A11.502 11.502 0 0 0 23.5 12C23.5 5.648 18.352.5 12 .5z" />
                       </svg>
@@ -395,9 +395,9 @@ export default function About() {
           <div data-reveal="slide-right" className="lg:col-span-3 space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
-                { icon: <User className="w-6 h-6 text-orange-500" />, title: 'Who I Am', text: "I'm Gervin Lee, a BSIT student and aspiring Frontend Developer who enjoys building modern and interactive web experiences." },
-                { icon: <Code2 className="w-6 h-6 text-orange-500" />, title: 'What I Build', text: 'From responsive websites to creative UI concepts, I focus on developing projects that combine functionality with good design.' },
-                { icon: <Target className="w-6 h-6 text-orange-500" />, title: 'My Vision', text: 'To become a skilled developer who creates meaningful digital experiences and continuously learns new technologies.' },
+                { icon: <User className="w-6 h-6 text-orange-500" />, title: 'Who I Am', text: "I’m Gervin Lee, a BSIT student and aspiring Frontend Developer and UI/UX Designer focused on building modern, interactive, and user-friendly web experiences." },
+                { icon: <Code2 className="w-6 h-6 text-orange-500" />, title: 'What I Build', text: 'I work on simple responsive websites and UI ideas, focusing on learning how to make them both functional and visually clear.' },
+                { icon: <Target className="w-6 h-6 text-orange-500" />, title: 'My Vision', text: 'To grow as a Web Developer and UI/UX Designer by creating meaningful digital experiences and continuously learning new technologies.' },
                 { icon: <Coffee className="w-6 h-6 text-orange-500" />, title: 'Beyond Coding', text: 'I enjoy exploring UI/UX design, experimenting with new tools, and staying updated with the latest trends in web development.' },
               ].map(({ icon, title, text }) => (
                 <div key={title} className="group bg-card border border-border/60 rounded-3xl p-6 hover:border-orange-500/30 transition-all duration-300 hover:-translate-y-1">

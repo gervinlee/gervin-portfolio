@@ -381,9 +381,9 @@ export default function ProjectsAndWorks() {
       </div>
 
       {/* Featured Projects */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <h1 data-reveal="fade" className="text-5xl sm:text-6xl lg:text-7xl font-black text-center mb-6 tracking-tight gradient-text">Featured Projects</h1>
-        <p data-reveal="fade" className="text-center text-foreground/60 text-lg max-w-2xl mx-auto">Turning ideas into functional and beautiful digital experiences</p>
+      <section className="py-10 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <h1 data-reveal="fade" className="text-3xl sm:text-5xl lg:text-7xl font-black text-center mb-4 sm:mb-6 tracking-tight gradient-text">Featured Projects</h1>
+        <p data-reveal="fade" className="text-center text-foreground/60 text-base sm:text-lg max-w-2xl mx-auto">Turning ideas into functional and beautiful digital experiences</p>
       </section>
 
       {/* Compact Project Carousel */}
@@ -398,7 +398,7 @@ export default function ProjectsAndWorks() {
           }}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[380px]">
-            <div className="relative overflow-hidden min-h-[220px] lg:min-h-[380px] group">
+            <div className="relative overflow-hidden min-h-[200px] sm:min-h-[260px] lg:min-h-[380px] group">
               <div className={imageClasses} style={{ backgroundImage: `url('${currentProjectData.image}')`, backgroundColor: currentProjectData.bgColor }} />
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent z-10" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-10" />
@@ -414,19 +414,19 @@ export default function ProjectsAndWorks() {
 
             <div className="p-5 lg:p-8 flex flex-col justify-between bg-card border-l border-border/60">
               <div className={`transition-all duration-500 ${phase === 'idle' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-xs font-semibold tracking-widest uppercase px-3.5 py-1 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20">
+                <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
+                  <span className="text-[10px] sm:text-xs font-semibold tracking-widest uppercase px-2.5 sm:px-3.5 py-1 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20">
                     {currentProjectData.category}
                   </span>
                   {currentProjectData.featured && (
-                    <span className="text-xs font-bold tracking-widest uppercase px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">Featured</span>
+                    <span className="text-[10px] sm:text-xs font-bold tracking-widest uppercase px-2.5 sm:px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">Featured</span>
                   )}
                 </div>
 
-                <h2 className="text-xl lg:text-3xl font-black tracking-tight mb-3">{currentProjectData.title}</h2>
-                <p className="text-foreground/70 leading-tight mb-6 text-[14.5px]">{currentProjectData.description}</p>
+                <h2 className="text-lg sm:text-xl lg:text-3xl font-black tracking-tight mb-2 sm:mb-3">{currentProjectData.title}</h2>
+                <p className="text-foreground/70 leading-tight mb-4 sm:mb-6 text-[13px] sm:text-[14.5px] line-clamp-3 sm:line-clamp-none">{currentProjectData.description}</p>
 
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                   <h3 className="uppercase text-xs tracking-widest text-foreground/50 mb-2">Tech Stack</h3>
                   <div className="flex flex-wrap gap-2">
                     {currentProjectData.tech.map((tech, i) => (
@@ -437,7 +437,7 @@ export default function ProjectsAndWorks() {
 
                 <div>
                   <h3 className="uppercase text-xs tracking-widest text-foreground/50 mb-2">Key Features</h3>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 text-[14px] text-foreground/70">
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 sm:gap-y-2 text-[12px] sm:text-[14px] text-foreground/70">
                     {currentProjectData.features.map((f, i) => (
                       <li key={i} className="flex items-start gap-2"><span className="text-orange-500 mt-1">•</span><span>{f}</span></li>
                     ))}
@@ -445,7 +445,7 @@ export default function ProjectsAndWorks() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3 pt-6">
+              <div className="flex flex-wrap gap-2 sm:gap-3 pt-4 sm:pt-6">
                 {currentProjectData.link ? (
                   <a href={currentProjectData.link} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all">
                     View Project <ExternalLink className="w-4 h-4" />
@@ -482,12 +482,12 @@ export default function ProjectsAndWorks() {
 
       {/* More Works Section */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-20">
-        <div data-reveal="fade" className="text-center mb-12">
-          <h2 className="text-4xl font-black tracking-tight gradient-text">More Works</h2>
+        <div data-reveal="fade" className="text-center mb-8 sm:mb-12">
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight gradient-text">More Works</h2>
           <p className="text-foreground/60 mt-2">Academic • Multimedia • Personal Works</p>
         </div>
 
-        <div data-reveal className="flex flex-wrap justify-center gap-3 mb-12">
+        <div data-reveal className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 sm:mb-12">
           {[
             { value: 'all', label: 'All Works' },
             { value: 'academic', label: 'Academic' },
@@ -497,7 +497,7 @@ export default function ProjectsAndWorks() {
             <button
               key={filter.value}
               onClick={() => setSelectedCategory(filter.value as any)}
-              className={`px-6 py-2.5 rounded-full font-medium transition-all ${selectedCategory === filter.value ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg' : 'border border-border hover:border-orange-500 text-foreground'}`}
+              className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-full font-medium transition-all ${selectedCategory === filter.value ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg' : 'border border-border hover:border-orange-500 text-foreground'}`}
             >
               {filter.label}
             </button>
@@ -540,13 +540,13 @@ export default function ProjectsAndWorks() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div data-reveal="scale" className="rounded-3xl border border-border/60 bg-card/80 p-12 text-center relative overflow-hidden group">
+      <section className="py-10 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div data-reveal="scale" className="rounded-3xl border border-border/60 bg-card/80 p-6 sm:p-12 text-center relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <h2 className="text-4xl font-black tracking-tight mb-4">Interested in collaborating?</h2>
-          <p className="text-lg text-foreground/70 max-w-2xl mx-auto mb-10">I'm always open to new opportunities and exciting projects. Let's create something amazing together.</p>
-          <a href="mailto:gervinleobi@gmail.com" className="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg">
-            Get In Touch <ArrowRight className="w-5 h-5" />
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight mb-3 sm:mb-4">Interested in collaborating?</h2>
+          <p className="text-base sm:text-lg text-foreground/70 max-w-2xl mx-auto mb-6 sm:mb-10">I'm always open to new opportunities and exciting projects. Let's create something amazing together.</p>
+          <a href="mailto:gervinleobi@gmail.com" className="inline-flex items-center gap-2 sm:gap-3 px-7 sm:px-10 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all text-base sm:text-lg">
+            Get In Touch <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </a>
         </div>
       </section>

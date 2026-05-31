@@ -510,8 +510,8 @@ export function FeaturedProjects() {
 
             <div className="fp-tags">
               <span className="fp-tag">React</span>
-              <span className="fp-tag">Node.js</span>
-              <span className="fp-tag">PostgreSQL</span>
+              <span className="fp-tag">Next.js</span>
+              <span className="fp-tag">Supabase</span>
             </div>
 
             <a
@@ -550,7 +550,7 @@ export function FeaturedProjects() {
             <span className="fp-number">02 / 02</span>
 
             {/* Category */}
-            <span className="fp-category-badge">Full Stack</span>
+            <span className="fp-category-badge">System Kiosk</span>
 
             {/* Hover overlay */}
             <div className="fp-overlay">
@@ -582,8 +582,8 @@ export function FeaturedProjects() {
 
             <div className="fp-tags">
               <span className="fp-tag">React</span>
-              <span className="fp-tag">Express</span>
-              <span className="fp-tag">MongoDB</span>
+              <span className="fp-tag">Next.js</span>
+              <span className="fp-tag">PostgreSQL</span>
             </div>
 
             <a
