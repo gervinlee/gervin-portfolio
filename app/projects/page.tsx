@@ -2,7 +2,7 @@
 
 import { ExternalLink, Github, ArrowLeft, ArrowRight, Camera, FileText } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import ImageModal from '@/components/image-modal';
+import ImageModal, { WorkItem } from '@/components/image-modal';
 import { Canvas } from '@react-three/fiber';
 import { Stars, OrbitControls } from '@react-three/drei';
 
@@ -255,29 +255,285 @@ const projects: Project[] = [
 ];
 
 // ─── Works Data ──────────────────────────────────────────────────────────────
-const academicWorks = [
-  { title: 'Vision Board', description: 'A vision board design aimed at helping people visualize their goals effectively.', details: 'Academic Design Project | 2024', image: '/assets/visionboard.png' },
-  { title: 'Ecosia Flyer', description: 'A promotional flyer for Ecosia, highlighting the mission to plant trees.', details: 'Academic Design Project | 2024', image: '/assets/ecosiaflyer.png' },
-  { title: 'About Me Poster', description: 'An engaging poster that introduces the creator, discussing skills, interests, and background.', details: 'Academic Design Project | 2024', image: '/assets/aboutmeposter.png' },
-  { 
-    title: 'Barikada Rule Book', 
-    description: 'A comprehensive rulebook for the Barikada game.', 
-    details: 'Game Rule Book | 2025', 
+
+const academicWorks: WorkItem[] = [
+  {
+    title: 'Vision Board',
+    description:
+      'A vision board design aimed at helping people visualize their goals effectively.',
+    details: 'Academic Design Project | 2024',
+    category: 'Academic',
+    image: '/assets/visionboard.png',
+    images: [
+      '/assets/visionboard.png',
+    ],
+    tags: ['Design', 'Academic'],
+    link: null,
+  },
+  {
+    title: 'Ecosia Flyer',
+    description:
+      'A promotional flyer for Ecosia, highlighting the mission to plant trees.',
+    details: 'Academic Design Project | 2024',
+    category: 'Academic',
+    image: '/assets/ecosiaflyer.png',
+    images: [
+      '/assets/ecosiaflyer.png',
+    ],
+    tags: ['Flyer', 'Academic'],
+    link: null,
+  },
+  {
+    title: 'About Me Poster',
+    description:
+      'An engaging poster that introduces the creator, discussing skills, interests, and background.',
+    details: 'Academic Design Project | 2024',
+    category: 'Academic',
+    image: '/assets/aboutmeposter.png',
+    images: [
+      '/assets/aboutmeposter.png',
+    ],
+    tags: ['Poster', 'Academic'],
+    link: null,
+  },
+  {
+    title: 'Mood Boards',
+    description:
+      "A collection of visual references, color palettes, typography, and design inspirations used to establish the creative direction of a project.",
+    details: 'Academic Design Project | 2025',
+    category: 'Academic',
+    image: '/assets/port-1.png',
+    images: [
+      '/assets/port-1.png',
+      '/assets/port-2.png',
+      '/assets/ea-1.png',
+      '/assets/ea-2.png',
+    ],
+    tags: ['Mood Board', 'Academic'],
+    link: null,
+  },
+  {
+    title: 'Barikada Game Manual',
+    description: 'A comprehensive manual for the Barikada game.',
+    details: 'Academic Design Project | 2025',
+    category: 'Academic',
+    image: '/assets/manual-cover.png',
+    pdf: '/assets/manual.pdf',
+    tags: ['Manual Design', 'Print'],
+    link: null,
+  },
+  {
+    title: 'Barikada Rule Book',
+    description: 'A comprehensive rulebook for the Barikada game.',
+    details: 'Game Rule Book | 2025',
+    category: 'Academic',
     image: '/assets/rulebook-cover.png',
-    pdf: '/assets/rulebook.pdf' 
+    pdf: '/assets/rulebook.pdf',
+    tags: ['Rule Book Design', 'Print'],
+    link: null,
   },
 ];
 
-const multimediaWorks = [
-  { title: 'Artist Profile', description: "A profile piece showcasing the artist's work, style, and influences.", details: 'Multimedia Project | 2024', image: '/assets/artistprofile.jpg' },
-  { title: 'Book Cover Design', description: "A captivating book cover design reflecting the book's theme.", details: 'Multimedia Design | 2024', image: '/assets/ENERO_BOOKCOVER.png' },
-  { title: 'Typographic', description: 'A comprehensive brand identity document including logos, color palettes, and guidelines.', details: 'Multimedia Works | 2024', image: '/assets/typographic.png' },
-  { title: 'Geometric', description: 'A comprehensive brand identity document including logos, color palettes, and guidelines.', details: 'Multimedia Works | 2024', image: '/assets/geometric.png' },
-  { title: 'Brandboard', description: 'A comprehensive brand identity document including logos, color palettes, and guidelines.', details: 'Branding Project | 2024', image: '/assets/brandboard.png' },
+const multimediaWorks: WorkItem[] = [
+  {
+    title: 'Artist Profile',
+    description:
+      "A profile piece showcasing the artist's work, style, and influences.",
+    details: 'Multimedia Project | 2024',
+    category: 'Multimedia',
+    image: '/assets/artistprofile.jpg',
+    images: [
+      '/assets/artistprofile.jpg',
+    ],
+    tags: ['Photography', 'Profile'],
+    link: null,
+  },
+  {
+    title: 'Book Cover Design',
+    description:
+      "A captivating book cover design reflecting the book's theme.",
+    details: 'Multimedia Design | 2024',
+    category: 'Multimedia',
+    image: '/assets/ENERO_BOOKCOVER.png',
+    images: [
+      '/assets/ENERO_BOOKCOVER.png',
+    ],
+    tags: ['Book Design', 'Print'],
+    link: null,
+  },
+  {
+    title: 'Minimalist Design',
+    description:
+      "A minimalist design exploring clean lines, ample whitespace, and simple forms.",
+    details: 'Multimedia Design | 2024',
+    category: 'Multimedia',
+    image: '/assets/minimalist.png',
+    images: [
+      '/assets/minimalist.png',
+    ],
+    tags: ['Minimalist', 'Design'],
+    link: null,
+  },
+  {
+    title: 'Typographic',
+    description:
+      'A typographic design exploring visual hierarchy, font pairing, and layout composition.',
+    details: 'Multimedia Works | 2024',
+    category: 'Multimedia',
+    image: '/assets/typographic.png',
+    images: [
+      '/assets/typographic.png',
+    ],
+    tags: ['Typography', 'Design'],
+    link: null,
+  },
+  {
+    title: 'Geometric',
+    description:
+      'A geometric design piece exploring shapes, patterns, and visual balance.',
+    details: 'Multimedia Works | 2024',
+    category: 'Multimedia',
+    image: '/assets/geometric.png',
+    images: [
+      '/assets/geometric.png',
+    ],
+    tags: ['Geometric', 'Design'],
+    link: null,
+  },
+  {
+    title: 'Brandboard',
+    description:
+      'A comprehensive brand identity document including logos, color palettes, and design guidelines.',
+    details: 'Branding Project | 2024',
+    category: 'Multimedia',
+    image: '/assets/brandboard.png',
+    images: [
+      '/assets/brandboard.png',
+      'https://picsum.photos/seed/bb2/800/600',
+      'https://picsum.photos/seed/bb3/800/600',
+    ],
+    tags: ['Branding', 'Identity'],
+    link: null,
+  },
 ];
 
-const personalWorks = [
-  { title: 'Personal Portfolio', description: 'My own modern portfolio website built with Next.js and Tailwind CSS.', details: 'Personal Project | 2025', image: '/assets/portfolio.png' },
+const personalWorks: WorkItem[] = [
+  {
+    title: 'Old Personal Portfolio',
+    description:
+      'My old modern portfolio website built with HTML, CSS, and JavaScript, featuring smooth animations and a brown aesthetic.',
+    details: 'Personal Project | 2025',
+    category: 'Personal',
+    image: '/assets/port-hero.png',
+    images: [
+      '/assets/port-home.png',
+      '/assets/port-about.png',
+      '/assets/port-works.png',
+      '/assets/port-projects.png',
+    ],
+    tags: ['HTML', 'CSS', 'JavaScript', 'Web Dev'],
+    link: null,
+  },
+  {
+    title: 'VITS Gallery Page',
+    description:
+      'My old modern portfolio website built with HTML, CSS, and JavaScript, featuring smooth animations and a brown aesthetic.',
+    details: 'Personal Project | 2025',
+    category: 'Personal',
+    image: '/assets/vits-hero.png',
+    images: [
+      '/assets/vits-home.png',
+      '/assets/vits-about.png',
+      '/assets/vits-gallery.png',
+      '/assets/vits-contact.png',
+    ],
+    tags: ['HTML', 'CSS', 'JavaScript', 'Web Dev'],
+    link: null,
+  },
+];
+
+const prototypingWorks: WorkItem[] = [
+  {
+    title: 'ResearchConnect+',
+    description:
+      'A research collaboration platform designed to help students, researchers, and institutions connect, share knowledge, and manage research projects efficiently.',
+    details: 'Prototyping | 2025',
+    category: 'Prototyping',
+    image: '/assets/rs-login.png',
+    images: [
+      '/assets/rs-admin.png',
+      '/assets/rs-faculty.png',
+      '/assets/rs-student.png',
+    ],
+    tags: ['UI/UX', 'Research'],
+    link: null,
+  },
+  {
+    title: 'SatisTrack',
+    description:
+      'An analytics dashboard prototype for monitoring satisfaction metrics through real-time insights, trend visualization, and performance tracking.',
+    details: 'Prototyping | 2025',
+    category: 'Prototyping',
+    image: '/assets/css-login.png',
+    images: [
+      '/assets/css-logins.png',
+      '/assets/css-consent.png',
+      '/assets/css-surveys.png',
+      '/assets/css-dashboards.png',
+      '/assets/css-survey-builder.png',
+      '/assets/css-analytics.png',
+      '/assets/css-admin.png',
+    ],
+    tags: ['UI/UX', 'Analytics'],
+    link: null,
+  },
+  {
+    title: 'HopeHub',
+    description:
+      'A volunteer and charity platform that connects donors, volunteers, and organizations to support community initiatives and social causes.',
+    details: 'Prototyping | 2023',
+    category: 'Prototyping',
+    image: '/assets/vc-onboarding-screens.png',
+    images: [
+      '/assets/vc-launching-screens.png',
+      '/assets/vc-login-signup.png',
+      '/assets/vc-main-screens.png',
+      '/assets/vc-donation-screens.png',
+      '/assets/vc-profile-screens.png',
+      '/assets/vc-notifications.png',
+    ],
+    tags: ['UI/UX', 'Volunteer'],
+    link: null,
+  },
+  {
+    title: 'EA Printworks',
+    description:
+      'A volunteer and charity platform that connects donors, volunteers, and organizations to support community initiatives and social causes.',
+    details: 'Prototyping | 2025',
+    category: 'Prototyping',
+    image: '/assets/ea-proto/ea-1.png',
+    images: [
+      '/assets/ea-proto/ea-2.png',
+      '/assets/ea-proto/ea-3.png',
+      '/assets/ea-proto/ea-4.png',
+      '/assets/ea-proto/ea-5.png',
+      '/assets/ea-proto/ea-6.png',
+      '/assets/ea-proto/ea-7.png',
+      '/assets/ea-proto/ea-8.png',
+      '/assets/ea-proto/ea-9.png',
+      '/assets/ea-proto/ea-10.png',
+      '/assets/ea-proto/ea-11.png',
+      '/assets/ea-proto/ea-12.png',
+      '/assets/ea-proto/ea-13.png',
+      '/assets/ea-proto/ea-14.png',
+      '/assets/ea-proto/ea-15.png',
+      '/assets/ea-proto/ea-16.png',
+      '/assets/ea-proto/ea-17.png',
+      '/assets/ea-proto/ea-18.png',
+    ],
+    tags: ['UI/UX', 'Print Shop'],
+    link: null,
+  },
 ];
 
 // ─── Slide Transition ────────────────────────────────────────────────────────
@@ -313,12 +569,13 @@ function useSlideTransition(current: number) {
 export default function ProjectsAndWorks() {
   const [currentProject, setCurrentProject] = useState(0);
   const [animating, setAnimating] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'academic' | 'multimedia' | 'personal'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'academic' | 'multimedia' | 'personal' | 'prototyping'>('all');
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImages, setModalImages] = useState<string[]>([]);
   const [modalTitle, setModalTitle] = useState('');
   const [modalPdf, setModalPdf] = useState<string | null>(null);
+  const [selectedWork, setSelectedWork] = useState<WorkItem | null>(null);
 
   const startXRef = useRef(0);
   const totalProjects = projects.length;
@@ -345,9 +602,11 @@ export default function ProjectsAndWorks() {
   const filteredWorks = selectedCategory === 'all'
     ? [...academicWorks.map(w => ({ ...w, category: 'academic' as const })),
        ...multimediaWorks.map(w => ({ ...w, category: 'multimedia' as const })),
-       ...personalWorks.map(w => ({ ...w, category: 'personal' as const }))]
+       ...personalWorks.map(w => ({ ...w, category: 'personal' as const })),
+       ...prototypingWorks.map(w => ({ ...w, category: 'prototyping' as const }))]
     : selectedCategory === 'academic' ? academicWorks.map(w => ({ ...w, category: 'academic' as const }))
     : selectedCategory === 'multimedia' ? multimediaWorks.map(w => ({ ...w, category: 'multimedia' as const }))
+    : selectedCategory === 'prototyping' ? prototypingWorks.map(w => ({ ...w, category: 'prototyping' as const }))
     : personalWorks.map(w => ({ ...w, category: 'personal' as const }));
 
   const imageClasses = `absolute inset-0 bg-cover bg-center transition-transform duration-[700ms] ease-out ${phase === 'idle' ? 'scale-100' : 'scale-[1.08]'}`;
@@ -484,7 +743,7 @@ export default function ProjectsAndWorks() {
       <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-20">
         <div data-reveal="fade" className="text-center mb-8 sm:mb-12">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight gradient-text">More Works</h2>
-          <p className="text-foreground/60 mt-2">Academic • Multimedia • Personal Works</p>
+          <p className="text-foreground/60 mt-2">Academic • Multimedia • Personal Works • Prototyping</p>
         </div>
 
         <div data-reveal className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 sm:mb-12">
@@ -493,10 +752,11 @@ export default function ProjectsAndWorks() {
             { value: 'academic', label: 'Academic' },
             { value: 'multimedia', label: 'Multimedia' },
             { value: 'personal', label: 'Personal Works' },
+            { value: 'prototyping', label: 'Prototyping' },
           ].map((filter) => (
             <button
               key={filter.value}
-              onClick={() => setSelectedCategory(filter.value as any)}
+              onClick={() => setSelectedCategory(filter.value as 'all' | 'academic' | 'multimedia' | 'personal' | 'prototyping')}
               className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-full font-medium transition-all ${selectedCategory === filter.value ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg' : 'border border-border hover:border-orange-500 text-foreground'}`}
             >
               {filter.label}
@@ -505,37 +765,43 @@ export default function ProjectsAndWorks() {
         </div>
 
         <div data-reveal data-reveal-stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredWorks.map((work: any, idx) => {
-            const isPdf = 'pdf' in work && !!work.pdf;
-            return (
-              <div 
-                key={idx} 
-                onClick={() => openModal([work.image], work.title, isPdf ? work.pdf : undefined)}
-                className="group rounded-3xl overflow-hidden border border-border bg-card hover:shadow-xl transition-all cursor-pointer relative"
-              >
-                <div className="h-64 overflow-hidden">
-                  <img 
-                    src={work.image} 
-                    alt={work.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                  />
-                  {isPdf && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="text-center">
-                        <FileText className="w-12 h-12 mx-auto text-white mb-2" />
-                        <p className="text-white font-medium">View PDF</p>
-                      </div>
-                    </div>
-                  )}
+          {filteredWorks.map((work, idx) => (
+            <div 
+              key={idx} 
+              onClick={() => setSelectedWork(work)}
+              className="group rounded-3xl overflow-hidden border border-border bg-card hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative"
+            >
+              <div className="h-56 overflow-hidden relative">
+                <img 
+                  src={work.image} 
+                  alt={work.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                  <span className="text-white text-xs font-semibold tracking-wide">Click to view →</span>
                 </div>
-                <div className="p-6">
-                  <h3 className="font-bold text-lg mb-2 group-hover:text-orange-500 transition-colors">{work.title}</h3>
-                  <p className="text-foreground/70 text-sm mb-3 line-clamp-3">{work.description}</p>
-                  <p className="text-xs text-foreground/50">{work.details}</p>
-                </div>
+                {work.pdf && (
+                  <div className="absolute top-3 right-3 bg-orange-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1">
+                    <FileText className="w-3 h-3" /> PDF
+                  </div>
+                )}
               </div>
-            );
-          })}
+              <div className="p-5">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className="font-bold text-base group-hover:text-orange-500 transition-colors leading-tight">{work.title}</h3>
+                </div>
+                <p className="text-foreground/60 text-xs mb-3 line-clamp-2">{work.description}</p>
+                <p className="text-[10px] text-foreground/40 font-medium">{work.details}</p>
+                {work.tags && work.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {work.tags.slice(0, 3).map((tag: string, i: number) => (
+                      <span key={i} className="text-[10px] px-2 py-0.5 bg-muted rounded-lg border border-border text-foreground/60">{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -559,15 +825,22 @@ export default function ProjectsAndWorks() {
       </footer>
 
       <ImageModal 
-        isOpen={modalOpen} 
-        images={modalImages} 
-        title={modalTitle} 
+        isOpen={modalOpen}
+        images={modalImages}
+        title={modalTitle}
         pdf={modalPdf}
         onClose={() => {
           setModalOpen(false);
           setModalPdf(null);
-        }} 
+        } } work={null}      
+        />
+     
+      <ImageModal
+        isOpen={!!selectedWork}
+        work={selectedWork}
+        onClose={() => setSelectedWork(null)}
       />
+   
       <style jsx>{`
         /* ── Scroll Reveal ───────────────────────────────────────────────── */
         [data-reveal] {
