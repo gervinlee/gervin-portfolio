@@ -311,6 +311,9 @@ const academicWorks: WorkItem[] = [
     ],
     tags: ['Mood Board', 'Academic'],
     link: null,
+    collaborators: [
+      { name: 'Rodelyn Julia', role: 'Visual Concept Contributor' },
+    ],
   },
   {
     title: 'Barikada Game Manual',
@@ -331,6 +334,13 @@ const academicWorks: WorkItem[] = [
     pdf: '/assets/rulebook.pdf',
     tags: ['Rule Book Design', 'Print'],
     link: null,
+    collaborators: [
+      { name: 'Janicka Akim Macam', role: 'Project Manager | Content Assistant' },
+      { name: 'Gerdin Marrera', role: 'Game Designer' },
+      { name: 'Aaron Rinion', role: 'Game Artist - Asset Designer' },
+      { name: 'Filiph Miles Flor', role: 'Game Artist - Logo Designer' },
+      { name: 'Kim Ruds Guston', role: 'Glossary of Terms Contributor' },
+    ],
   },
 ];
 
@@ -467,6 +477,9 @@ const prototypingWorks: WorkItem[] = [
     ],
     tags: ['UI/UX', 'Research'],
     link: null,
+    collaborators: [
+      { name: 'Edainne Mashaelle Minton', role: 'UI Designer' },
+    ],
   },
   {
     title: 'SatisTrack',
@@ -533,6 +546,9 @@ const prototypingWorks: WorkItem[] = [
     ],
     tags: ['UI/UX', 'Print Shop'],
     link: null,
+    collaborators: [
+      { name: 'Rodelyn Julia', role: 'Wireframe & Prototype Contributor' },
+    ],
   },
 ];
 
