@@ -2,7 +2,7 @@
 
 import { ExternalLink, Github, ArrowLeft, ArrowRight, Camera, FileText } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import ImageModal, { WorkItem } from '@/components/image-modal';
+import ImageModal, { WorkItem, Collaborator } from '@/components/image-modal';
 import { Canvas } from '@react-three/fiber';
 import { Stars, OrbitControls } from '@react-three/drei';
 
@@ -599,15 +599,12 @@ export default function ProjectsAndWorks() {
 
   const currentProjectData = projects[displayed];
 
-  const filteredWorks = selectedCategory === 'all'
-    ? [...academicWorks.map(w => ({ ...w, category: 'academic' as const })),
-       ...multimediaWorks.map(w => ({ ...w, category: 'multimedia' as const })),
-       ...personalWorks.map(w => ({ ...w, category: 'personal' as const })),
-       ...prototypingWorks.map(w => ({ ...w, category: 'prototyping' as const }))]
-    : selectedCategory === 'academic' ? academicWorks.map(w => ({ ...w, category: 'academic' as const }))
-    : selectedCategory === 'multimedia' ? multimediaWorks.map(w => ({ ...w, category: 'multimedia' as const }))
-    : selectedCategory === 'prototyping' ? prototypingWorks.map(w => ({ ...w, category: 'prototyping' as const }))
-    : personalWorks.map(w => ({ ...w, category: 'personal' as const }));
+  const filteredWorks: WorkItem[] = selectedCategory === 'all'
+    ? [...academicWorks, ...multimediaWorks, ...personalWorks, ...prototypingWorks]
+    : selectedCategory === 'academic' ? academicWorks
+    : selectedCategory === 'multimedia' ? multimediaWorks
+    : selectedCategory === 'prototyping' ? prototypingWorks
+    : personalWorks;
 
   const imageClasses = `absolute inset-0 bg-cover bg-center transition-transform duration-[700ms] ease-out ${phase === 'idle' ? 'scale-100' : 'scale-[1.08]'}`;
 
@@ -765,7 +762,7 @@ export default function ProjectsAndWorks() {
         </div>
 
         <div data-reveal data-reveal-stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredWorks.map((work, idx) => (
+          {filteredWorks.map((work: WorkItem, idx) => (
             <div 
               key={idx} 
               onClick={() => setSelectedWork(work)}
@@ -824,17 +821,17 @@ export default function ProjectsAndWorks() {
         </div>
       </footer>
 
-      <ImageModal 
+      {/* Legacy modal — featured project screenshots */}
+      <ImageModal
         isOpen={modalOpen}
+        work={null}
         images={modalImages}
         title={modalTitle}
         pdf={modalPdf}
-        onClose={() => {
-          setModalOpen(false);
-          setModalPdf(null);
-        } } work={null}      
-        />
-     
+        onClose={() => { setModalOpen(false); setModalPdf(null); }}
+      />
+
+      {/* Rich work modal — More Works section */}
       <ImageModal
         isOpen={!!selectedWork}
         work={selectedWork}
